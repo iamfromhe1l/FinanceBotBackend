@@ -12,8 +12,7 @@ export class AuthController {
 		if (oldUser) {
 			throw new BadRequestException(ALREADY_REGISTERED);
 		}
-		const res = await this.authService.createUser(dto);
-		return { email: res['email'] };
+		return await this.authService.createUser(dto);
 	}
 
 	@Post('login')
