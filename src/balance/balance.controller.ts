@@ -11,8 +11,8 @@ export class BalanceController {
 		return this.balanceService.editBalance(dto);
 	}
 
-	@Post('add')
+	@Post('diff')
 	async addToBalance(@Body() dto: DiffBalanceDto) {
-		this.balanceService.diffBalace(dto);
+		return this.balanceService.diffBalace(dto);
 	}
 }
