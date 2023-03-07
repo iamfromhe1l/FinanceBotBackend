@@ -22,3 +22,4 @@ import { BalanceModule } from './balance/balance.module';
 	providers: [AppService],
 })
 export class AppModule {}
+
