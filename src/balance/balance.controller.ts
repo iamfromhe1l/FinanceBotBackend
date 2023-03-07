@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { EditBalanceDto } from './dto/edit.balance.dto';
 import { BalanceService } from './balance.service';
-import { DiffBalanceDto } from './dto/diff.balance.dto';
 import { EmailDto } from 'src/globalDto/email.dto';
+import { EditBalanceDto } from './dto/edit.balance.dto';
+import { DiffBalanceDto } from './dto/diff.balance.dto';
 
 @Controller('balance')
 export class BalanceController {
