@@ -24,11 +24,4 @@ export class UserModel extends TimeStamps {
 	@prop({ default: [] })
 	expenses: Types.ObjectId[];
 
-	// Должен user
-	@prop({ default: [] })
-	owe: Types.ObjectId[];
-
-	// Должны user'у
-	@prop({ default: [] })
-	oweMe: Types.ObjectId[];
 }
