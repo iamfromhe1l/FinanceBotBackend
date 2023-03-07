@@ -7,3 +7,4 @@ export class DiffBalanceDto {
 	@IsNumber()
 	diff: number;
 }
+
