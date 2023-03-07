@@ -4,6 +4,7 @@ import { UserModel } from 'src/auth/user.model';
 import { EditBalanceDto } from './dto/edit.balance.dto';
 import { ReturnModelType } from '@typegoose/typegoose';
 import { DiffBalanceDto } from './dto/diff.balance.dto';
+import { EmailDto } from 'src/globalDto/email.dto';
 
 @Injectable()
 export class BalanceService {
@@ -28,5 +29,9 @@ export class BalanceService {
 		user.balance += dto.diff;
 		user.save();
 		return { balance: user.balance };
+	}
+
+	async getBalance({ email }: EmailDto) {
+		return (await this.getUser(email)).balance;
 	}
 }
