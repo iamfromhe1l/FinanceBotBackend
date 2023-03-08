@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from 'nestjs-typegoose';
 import { UserModel } from 'src/auth/user.model';
 import { ReturnModelType } from '@typegoose/typegoose';
-import { EmailDto } from 'src/globalDto/email.dto';
 import {MyDebtsModel} from "./myDebts.model";
 import {AddMyDebtsDto} from "./dto/add.myDebts.dto";
 import {RemoveMyDebtsDto} from "./dto/remove.myDebts.dto";
@@ -24,26 +23,43 @@ export class MyDebtsService {
     }
 
     async addMyDebt(dto: AddMyDebtsDto) {
+        const debt = await this.getDebt(dto.name)
+        if (debt) {
+            debt.amount += dto.amount;
+            return debt.save()
+        }
         const newDebt = new this.myDebtsModel({
             email: dto.email,
             name: dto.name,
             amount: dto.amount,
         });
-        return newDebt.save();
+        await newDebt.save();
+        const user = await this.getUser(dto.email);
+        user.myDebts = [...user.myDebts, {id:newDebt._id}]
+        return user.save();
+    }
+
+    async editMyDebt(){
+
     }
 
     async deleteMyDebt(dto: RemoveMyDebtsDto) {
-        const tempName = dto.name;
-        const tempDebt = await this.getDebt(tempName);
-        if (tempDebt){
-            return tempDebt.remove();
-        }
-        else{
-            return 5;
-        }
+        const debt = await this.getDebt(dto.name);
+
+        // refactor using throw exception
+        if (!debt) return -1;
+        const id = debt._id;
+        const user = await this.getUser(dto.email);
+        user.myDebts.splice(user.myDebts.indexOf({"id":id}));
+        await user.save();
+        return debt.remove();
     }
 
-    // async getBalance({ email }: EmailDto) {
-    //     return (await this.getUser(email)).balance;
-    // }
+    async getDebtsList() {
+
+    }
+
+    async getTotalDebt() {
+
+    }
 }

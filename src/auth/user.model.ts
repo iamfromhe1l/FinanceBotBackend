@@ -24,4 +24,6 @@ export class UserModel extends TimeStamps {
 	@prop({ default: [] })
 	expenses: Types.ObjectId[];
 
+	@prop({ default: [] })
+	myDebts: Types.ObjectId[];
 }
