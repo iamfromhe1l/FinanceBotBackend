@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { getMongoConfig } from './configs/mongo.config';
 import { BalanceModule } from './balance/balance.module';
+import { IncomeModule } from './income/income.module';
 
 @Module({
 	imports: [
@@ -17,6 +18,7 @@ import { BalanceModule } from './balance/balance.module';
 			useFactory: getMongoConfig,
 		}),
 		BalanceModule,
+		IncomeModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
