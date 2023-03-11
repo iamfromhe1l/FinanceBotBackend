@@ -4,6 +4,7 @@ import { IncomeService } from './income.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { IncomeModel } from './income.model';
+import { BalanceModule } from 'src/balance/balance.module';
 
 @Module({
 	imports: [
@@ -16,6 +17,7 @@ import { IncomeModel } from './income.model';
 				},
 			},
 		]),
+		BalanceModule,
 	],
 	controllers: [IncomeController],
 	providers: [IncomeService],
