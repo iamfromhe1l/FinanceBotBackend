@@ -8,6 +8,17 @@ import { ReturnModelType } from '@typegoose/typegoose';
 export class IncomeService {
 	constructor(
 		@InjectModel(IncomeModel)
-		private readonly incomeModule: ReturnModelType<typeof IncomeModel>,
+		private readonly incomeModel: ReturnModelType<typeof IncomeModel>,
 	) {}
+	async createIncome(dto: IncomeDto) {
+		const currentDate: Date = new Date();
+		const newIncome = new this.incomeModel({
+			title: dto.title,
+			price: dto.price,
+			category: dto.category,
+			period: dto.period,
+			nextDate: currentDate.setDate(currentDate.getDate() + dto.period),
+		});
+		return newIncome.save();
+	}
 }

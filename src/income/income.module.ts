@@ -3,13 +3,14 @@ import { IncomeController } from './income.controller';
 import { IncomeService } from './income.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
+import { IncomeModel } from './income.model';
 
 @Module({
 	imports: [
 		ConfigModule,
 		TypegooseModule.forFeature([
 			{
-				typegooseClass: IncomeModule,
+				typegooseClass: IncomeModel,
 				schemaOptions: {
 					collection: 'Incomes',
 				},
