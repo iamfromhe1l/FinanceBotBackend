@@ -3,20 +3,23 @@ import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 
 export interface IncomeModel extends Base {}
 export class IncomeModel extends TimeStamps {
-	@prop()
+	@prop({ type: () => String, required: true })
+	email: string;
+
+	@prop({ type: () => String, required: true })
 	title: string;
 
-	@prop()
+	@prop({ type: () => Number, required: true })
 	price: number;
 
-	@prop()
+	@prop({ type: () => String, default: 'main' })
 	category: string;
 
 	// In days
-	@prop()
+	@prop({ required: true, type: () => Number })
 	period: number;
 
 	// Next income Date
-	@prop()
+	@prop({ type: () => Date, required: true })
 	nextDate: Date;
 }
