@@ -4,31 +4,31 @@ import { Types } from 'mongoose';
 
 export interface UserModel extends Base {}
 export class UserModel extends TimeStamps {
-	@prop({ unique: true })
+	@prop({ unique: true, required: true })
 	email: string;
 
-	@prop()
+	@prop({ type: () => String, required: true })
 	passwordHash: string;
 
 	@prop({ default: 0 })
 	balance: number;
 
-	@prop({ default: [] })
+	@prop({ type: String })
 	tgID: string[];
 
 	// Доходы
-	@prop({ default: [] })
+	@prop({ type: () => Types.ObjectId })
 	income: Types.ObjectId[];
 
 	// Расходы
-	@prop({ default: [] })
+	@prop({ type: () => Types.ObjectId })
 	expenses: Types.ObjectId[];
 
 	// Должен user
-	@prop({ default: [] })
+	@prop({ type: () => Types.ObjectId })
 	owe: Types.ObjectId[];
 
 	// Должны user'у
-	@prop({ default: [] })
+	@prop({ type: () => Types.ObjectId })
 	oweMe: Types.ObjectId[];
 }
