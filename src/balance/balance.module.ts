@@ -21,4 +21,3 @@ import { UserModel } from 'src/auth/user.model';
 	providers: [BalanceService],
 })
 export class BalanceModule {}
-
