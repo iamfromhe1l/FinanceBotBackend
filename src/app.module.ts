@@ -24,5 +24,3 @@ import { IncomeModule } from './income/income.module';
 	providers: [AppService],
 })
 export class AppModule {}
-
-

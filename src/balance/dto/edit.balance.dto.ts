@@ -7,4 +7,3 @@ export class EditBalanceDto {
 	@IsNumber()
 	editedBalance: number;
 }
-
