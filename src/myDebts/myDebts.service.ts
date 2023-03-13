@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from 'nestjs-typegoose';
 import { UserModel } from 'src/auth/user.model';
-import { ReturnModelType } from '@typegoose/typegoose';
+import {mongoose, ReturnModelType} from '@typegoose/typegoose';
 import {MyDebtsModel} from "./myDebts.model";
 import {AddMyDebtsDto} from "./dto/add.myDebts.dto";
 import {RemoveMyDebtsDto} from "./dto/remove.myDebts.dto";
+import {GetTotalMyDebtsDto} from "./dto/getTotal.myDebts.dto";
 
 @Injectable()
 export class MyDebtsService {
@@ -20,6 +21,18 @@ export class MyDebtsService {
     }
     async getDebt(name) {
         return await this.myDebtsModel.findOne({ name }).exec();
+    }
+    async getDebtById(id) {
+        return await this.myDebtsModel.findOne({ _id:id }).exec();
+    }
+    async getDebtsList(dto: GetTotalMyDebtsDto) {
+        const user = await this.getUser(dto.email);
+        const debtsList = [];
+        for (const el of user.myDebts) {
+            const debt = await this.getDebtById(el.id);
+            debtsList.push(debt);
+        }
+        return debtsList;
     }
 
     async addMyDebt(dto: AddMyDebtsDto) {
@@ -55,11 +68,8 @@ export class MyDebtsService {
         return debt.remove();
     }
 
-    async getDebtsList() {
-
-    }
-
-    async getTotalDebt() {
-
+    async getTotalDebts(dto: GetTotalMyDebtsDto){
+        const debtsList = await this.getDebtsList({email:dto.email});
+        return debtsList.map(el => el.amount).reduce((acc,el)=>acc+el);
     }
 }

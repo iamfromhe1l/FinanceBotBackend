@@ -4,7 +4,7 @@ import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 export interface MyDebtsModel extends Base {}
 export class MyDebtsModel extends TimeStamps {
 
-    @prop({unique: false})
+    @prop()
     email: string;
 
     @prop({ default: "Че тут писать" })
@@ -12,7 +12,5 @@ export class MyDebtsModel extends TimeStamps {
 
     @prop({ default: 0 })
     amount: number;
-
-
 
 }

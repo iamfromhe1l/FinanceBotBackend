@@ -2,6 +2,7 @@ import {Body, Controller, Delete, Get, Post} from '@nestjs/common';
 import {MyDebtsService} from "./myDebts.service";
 import {AddMyDebtsDto} from "./dto/add.myDebts.dto";
 import {RemoveMyDebtsDto} from "./dto/remove.myDebts.dto";
+import {GetTotalMyDebtsDto} from "./dto/getTotal.myDebts.dto";
 
 @Controller('myDebts')
 export class MyDebtsController {
@@ -17,8 +18,13 @@ export class MyDebtsController {
         return this.myDebtsService.deleteMyDebt(dto);
     }
 
-    // @Get('getBalance')
-    // async getBalance(@Body() dto: EmailDto) {
-    //     return this.balanceService.getBalance(dto);
-    // }
+    @Post('debtsTotal')
+    async getTotalDebts(@Body() dto: GetTotalMyDebtsDto) {
+        return this.myDebtsService.getDebtsList(dto);
+    }
+
+    @Post('debtsList')
+    async getDebtsList(@Body() dto: GetTotalMyDebtsDto) {
+        return this.myDebtsService.getDebtsList(dto);
+    }
 }
