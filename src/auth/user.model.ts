@@ -13,22 +13,22 @@ export class UserModel extends TimeStamps {
 	@prop({ default: 0 })
 	balance: number;
 
-	@prop({ type: () => Array<string> })
+	@prop({ type: String })
 	tgID: string[];
 
 	// Доходы
-	@prop({ type: () => Array<Types.ObjectId> })
+	@prop({ type: () => Types.ObjectId })
 	income: Types.ObjectId[];
 
 	// Расходы
-	@prop({ type: () => Array<Types.ObjectId> })
+	@prop({ type: () => Types.ObjectId })
 	expenses: Types.ObjectId[];
 
 	// Должен user
-	@prop({ type: () => Array<Types.ObjectId> })
+	@prop({ type: () => Types.ObjectId })
 	owe: Types.ObjectId[];
 
 	// Должны user'у
-	@prop({ type: () => Array<Types.ObjectId> })
+	@prop({ type: () => Types.ObjectId })
 	oweMe: Types.ObjectId[];
 }
