@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { IncomeModel } from './income.model';
 import { BalanceModule } from 'src/balance/balance.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
 	imports: [
@@ -18,6 +19,7 @@ import { BalanceModule } from 'src/balance/balance.module';
 			},
 		]),
 		BalanceModule,
+		ScheduleModule.forRoot(),
 	],
 	controllers: [IncomeController],
 	providers: [IncomeService],

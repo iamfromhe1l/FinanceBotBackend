@@ -3,8 +3,8 @@ import { IncomeDto } from './dto/Income.dto';
 import { InjectModel } from 'nestjs-typegoose';
 import { IncomeModel } from './income.model';
 import { ReturnModelType } from '@typegoose/typegoose';
-import { UserModel } from 'src/auth/user.model';
 import { BalanceService } from 'src/balance/balance.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class IncomeService {
@@ -13,6 +13,12 @@ export class IncomeService {
 		private readonly incomeModel: ReturnModelType<typeof IncomeModel>,
 		private readonly balanceService: BalanceService,
 	) {}
+
+	@Cron(CronExpression.EVERY_DAY_AT_10AM)
+	async handleCron() {
+		await this.checkAllIncomes();
+	}
+
 	async createIncome(dto: IncomeDto) {
 		const newIncome = new this.incomeModel({
 			email: dto.email,
