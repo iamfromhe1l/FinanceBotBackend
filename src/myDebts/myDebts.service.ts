@@ -1,42 +1,40 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from 'nestjs-typegoose';
-import { UserModel } from 'src/auth/user.model';
-import {mongoose, ReturnModelType} from '@typegoose/typegoose';
+import {ReturnModelType} from '@typegoose/typegoose';
 import {MyDebtsModel} from "./myDebts.model";
 import {AddMyDebtsDto} from "./dto/add.myDebts.dto";
 import {RemoveMyDebtsDto} from "./dto/remove.myDebts.dto";
 import {GetTotalMyDebtsDto} from "./dto/getTotal.myDebts.dto";
+import {UserService} from "../user/user.service";
 
 @Injectable()
 export class MyDebtsService {
     constructor(
-        @InjectModel(UserModel)
-        private readonly userModel: ReturnModelType<typeof UserModel>,
         @InjectModel(MyDebtsModel)
         private readonly myDebtsModel: ReturnModelType<typeof MyDebtsModel>,
+        private readonly userService: UserService,
     ) {}
 
-    async getUser(email) {
-        return await this.userModel.findOne({ email }).exec();
+    async getDebt(email,name) {
+        return await this.myDebtsModel.findOne({ name:name, email:email }).exec();
     }
-    async getDebt(name) {
-        return await this.myDebtsModel.findOne({ name }).exec();
-    }
+
     async getDebtById(id) {
         return await this.myDebtsModel.findOne({ _id:id }).exec();
     }
-    async getDebtsList(dto: GetTotalMyDebtsDto) {
-        const user = await this.getUser(dto.email);
-        const debtsList = [];
-        for (const el of user.myDebts) {
-            const debt = await this.getDebtById(el.id);
-            debtsList.push(debt);
-        }
-        return debtsList;
-    }
+
+    // async getDebtsList(dto: GetTotalMyDebtsDto) {
+    //     const user = await this.userService.findUser({ email: dto.email });
+    //     const debtsList = [];
+    //     for (const el of user.myDebts) {
+    //         const debt = await this.getDebtById(el.id);
+    //         debtsList.push(debt);
+    //     }
+    //     return debtsList;
+    // }
 
     async addMyDebt(dto: AddMyDebtsDto) {
-        const debt = await this.getDebt(dto.name)
+        const debt = await this.getDebt(dto.email, dto.name)
         if (debt) {
             debt.amount += dto.amount;
             return debt.save()
@@ -47,8 +45,9 @@ export class MyDebtsService {
             amount: dto.amount,
         });
         await newDebt.save();
-        const user = await this.getUser(dto.email);
-        user.myDebts = [...user.myDebts, {id:newDebt._id}]
+        const user = await this.userService.findUser({ email: dto.email });
+        // user.myDebts
+        // user.myDebts = [...user.myDebts, {id:newDebt._id}]
         return user.save();
     }
 
@@ -57,14 +56,15 @@ export class MyDebtsService {
     }
 
     async deleteMyDebt(dto: RemoveMyDebtsDto) {
-        const debt = await this.getDebt(dto.name);
+        const debt = await this.getDebt(dto.email, dto.name);
 
         // refactor using throw exception
         if (!debt) return -1;
         const id = debt._id;
-        const user = await this.getUser(dto.email);
-        user.myDebts.splice(user.myDebts.indexOf({"id":id}));
+        const user = await this.userService.findUser({ email: dto.email });
+        // user.myDebts.splice(user.myDebts.indexOf({"id":id}));
         await user.save();
+
         return debt.remove();
     }
 

@@ -3,19 +3,14 @@ import { ConfigModule } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
 import {MyDebtsController} from "./myDebts.controller";
 import {MyDebtsService} from "./myDebts.service";
-import {UserModel} from "../auth/user.model";
 import {MyDebtsModel} from "./myDebts.model";
+import {UserModule} from "../user/user.module";
+import {ScheduleModule} from "@nestjs/schedule";
 
 @Module({
     imports: [
         ConfigModule,
         TypegooseModule.forFeature([
-            {
-                typegooseClass: UserModel,
-                schemaOptions: {
-                    collection: 'Users',
-                },
-            },
             {
                 typegooseClass: MyDebtsModel,
                 schemaOptions: {
@@ -23,8 +18,11 @@ import {MyDebtsModel} from "./myDebts.model";
                 },
             },
         ]),
+        UserModule,
+        ScheduleModule.forRoot(),
     ],
     controllers: [MyDebtsController],
     providers: [MyDebtsService],
+    exports: [MyDebtsService],
 })
 export class MyDebtsModule {}

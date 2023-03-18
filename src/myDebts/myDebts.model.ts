@@ -4,13 +4,13 @@ import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 export interface MyDebtsModel extends Base {}
 export class MyDebtsModel extends TimeStamps {
 
-    @prop()
+    @prop({type: () => String, required: true})
     email: string;
 
-    @prop({ default: "Че тут писать" })
+    @prop({ type: () => Number, required: true })
     name: string;
 
-    @prop({ default: 0 })
+    @prop({ type: () => Number, required: true })
     amount: number;
 
 }
