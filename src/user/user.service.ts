@@ -16,6 +16,10 @@ export class UserService {
 		return await this.userModel.findOne({ email }).exec();
 	}
 
+	async getUserWithPopulate({ email }: ValidateDto) {
+		return (await this.findUser({ email })).populate('incomes').execPopulate();
+	}
+
 	async createUser(dto: CreateUserDto) {
 		const newUser = new this.userModel({
 			email: dto.email,
