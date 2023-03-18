@@ -13,18 +13,19 @@ export class MyDebtsController {
         return this.myDebtsService.addMyDebt(dto);
     }
 
-    @Post()
+    @Delete()
     async deleteMyDebt(@Body() dto: RemoveMyDebtsDto) {
         return this.myDebtsService.deleteMyDebt(dto);
     }
 
-    @Post('debtsTotal')
-    async getTotalDebts(@Body() dto: GetTotalMyDebtsDto) {
-        return this.myDebtsService.getDebtsList(dto);
-    }
-
-    @Post('debtsList')
+    @Get('debtsList')
     async getDebtsList(@Body() dto: GetTotalMyDebtsDto) {
         return this.myDebtsService.getDebtsList(dto);
     }
+
+    @Get('debtsTotal')
+    async getTotalDebts(@Body() dto: GetTotalMyDebtsDto) {
+        return this.myDebtsService.getTotalDebts(dto);
+    }
+
 }

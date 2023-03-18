@@ -17,7 +17,7 @@ export class UserService {
 	}
 
 	async getUserWithPopulate({ email }: ValidateDto) {
-		return (await this.findUser({ email })).populate('incomes');
+		return (await this.findUser({ email })).populate('incomes').populate('myDebts').execPopulate();
 	}
 
 	async createUser(dto: CreateUserDto) {

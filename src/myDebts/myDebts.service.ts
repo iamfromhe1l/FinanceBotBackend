@@ -19,20 +19,6 @@ export class MyDebtsService {
         return await this.myDebtsModel.findOne({ name:name, email:email }).exec();
     }
 
-    async getDebtById(id) {
-        return await this.myDebtsModel.findOne({ _id:id }).exec();
-    }
-
-    // async getDebtsList(dto: GetTotalMyDebtsDto) {
-    //     const user = await this.userService.findUser({ email: dto.email });
-    //     const debtsList = [];
-    //     for (const el of user.myDebts) {
-    //         const debt = await this.getDebtById(el.id);
-    //         debtsList.push(debt);
-    //     }
-    //     return debtsList;
-    // }
-
     async addMyDebt(dto: AddMyDebtsDto) {
         const debt = await this.getDebt(dto.email, dto.name)
         if (debt) {
@@ -46,30 +32,26 @@ export class MyDebtsService {
         });
         await newDebt.save();
         const user = await this.userService.findUser({ email: dto.email });
-        // user.myDebts
-        // user.myDebts = [...user.myDebts, {id:newDebt._id}]
+        user.myDebts = [...user.myDebts, newDebt.id]
         return user.save();
-    }
-
-    async editMyDebt(){
-
     }
 
     async deleteMyDebt(dto: RemoveMyDebtsDto) {
         const debt = await this.getDebt(dto.email, dto.name);
-
-        // refactor using throw exception
         if (!debt) return -1;
-        const id = debt._id;
         const user = await this.userService.findUser({ email: dto.email });
-        // user.myDebts.splice(user.myDebts.indexOf({"id":id}));
+        user.myDebts.splice(user.myDebts.indexOf(debt.id));
         await user.save();
-
         return debt.remove();
     }
 
+    async getDebtsList(dto: GetTotalMyDebtsDto) {
+        const user = await this.userService.getUserWithPopulate({ email: dto.email })
+        return user['myDebts']
+    }
+
     async getTotalDebts(dto: GetTotalMyDebtsDto){
-        const debtsList = await this.getDebtsList({email:dto.email});
+        const debtsList = await this.getDebtsList(dto)
         return debtsList.map(el => el.amount).reduce((acc,el)=>acc+el);
     }
 }

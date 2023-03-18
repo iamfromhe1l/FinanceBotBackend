@@ -7,7 +7,7 @@ export class MyDebtsModel extends TimeStamps {
     @prop({type: () => String, required: true})
     email: string;
 
-    @prop({ type: () => Number, required: true })
+    @prop({ type: () => String, required: true })
     name: string;
 
     @prop({ type: () => Number, required: true })
