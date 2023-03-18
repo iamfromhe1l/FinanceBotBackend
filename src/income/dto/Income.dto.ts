@@ -1,17 +1,13 @@
 import {
-	IsEmail,
 	IsNotEmpty,
 	IsNumber,
 	IsString,
 	Max,
 	MaxLength,
 } from 'class-validator';
+import { ValidateDto } from 'src/globalDto/validate.dto';
 
-export class IncomeDto {
-	@MaxLength(20)
-	@IsEmail()
-	email: string;
-
+export class IncomeDto extends ValidateDto {
 	@MaxLength(20)
 	@IsNotEmpty()
 	@IsString()
