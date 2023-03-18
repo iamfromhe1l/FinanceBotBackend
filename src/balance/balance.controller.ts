@@ -8,17 +8,17 @@ import { DiffBalanceDto } from './dto/diff.balance.dto';
 export class BalanceController {
 	constructor(private readonly balanceService: BalanceService) {}
 	@Post('edit')
-	async editBalance(@Body() dto: EditBalanceDto) {
-		return this.balanceService.editBalance(dto);
+	async editBalance(@Body() dto: EditBalanceDto): Promise<{ balance: number }> {
+		return await this.balanceService.editBalance(dto);
 	}
 
 	@Post('diff')
-	async diffBalance(@Body() dto: DiffBalanceDto) {
-		return this.balanceService.diffBalace(dto);
+	async diffBalance(@Body() dto: DiffBalanceDto): Promise<{ balance: number }> {
+		return await this.balanceService.diffBalace(dto);
 	}
 
 	@Get('getBalance')
-	async getBalance(@Body() dto: ValidateDto) {
-		return this.balanceService.getBalance(dto);
+	async getBalance(@Body() dto: ValidateDto): Promise<number> {
+		return await this.balanceService.getBalance(dto);
 	}
 }

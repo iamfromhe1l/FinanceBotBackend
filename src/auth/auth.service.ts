@@ -22,7 +22,10 @@ export class AuthService {
 		return await this.userService.findUser({ email });
 	}
 
-	async validateUser(email: string, password: string) {
+	async validateUser(
+		email: string,
+		password: string,
+	): Promise<{ email: string }> {
 		const user = await this.findUser({ email, password });
 		if (!user) {
 			throw new UnauthorizedException(USER_NOT_FOUND);

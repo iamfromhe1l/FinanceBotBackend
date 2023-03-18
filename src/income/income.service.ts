@@ -17,12 +17,12 @@ export class IncomeService {
 	) {}
 
 	@Cron(CronExpression.EVERY_DAY_AT_10AM)
-	async handleCron() {
+	async handleCron(): Promise<void> {
 		await this.checkAllIncomes();
 	}
 
 	async createIncome(dto: IncomeDto) {
-		const newIncome = new this.incomeModel({
+		const newIncome = await new this.incomeModel({
 			email: dto.email,
 			title: dto.title,
 			price: dto.price,
@@ -35,7 +35,7 @@ export class IncomeService {
 		await user.save();
 		return newIncome.save();
 	}
-	async checkAllIncomes() {
+	async checkAllIncomes(): Promise<void> {
 		for await (const income of this.incomeModel.find()) {
 			if (income.nextDate < new Date()) {
 				this.balanceService.diffBalace({
