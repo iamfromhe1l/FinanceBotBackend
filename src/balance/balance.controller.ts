@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { BalanceService } from './balance.service';
-import { EmailDto } from 'src/globalDto/email.dto';
+import { ValidateDto } from 'src/globalDto/validate.dto';
 import { EditBalanceDto } from './dto/edit.balance.dto';
 import { DiffBalanceDto } from './dto/diff.balance.dto';
 
@@ -18,7 +18,7 @@ export class BalanceController {
 	}
 
 	@Get('getBalance')
-	async getBalance(@Body() dto: EmailDto) {
+	async getBalance(@Body() dto: ValidateDto) {
 		return this.balanceService.getBalance(dto);
 	}
 }
