@@ -1,24 +1,12 @@
 import { Module } from '@nestjs/common';
 import { BalanceController } from './balance.controller';
 import { BalanceService } from './balance.service';
-import { ConfigModule } from '@nestjs/config';
-import { TypegooseModule } from 'nestjs-typegoose';
-import { UserModel } from 'src/auth/user.model';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-	imports: [
-		ConfigModule,
-		TypegooseModule.forFeature([
-			{
-				typegooseClass: UserModel,
-				schemaOptions: {
-					collection: 'Users',
-				},
-			},
-		]),
-	],
+	imports: [UserModule],
 	controllers: [BalanceController],
 	providers: [BalanceService],
+	exports: [BalanceService],
 })
 export class BalanceModule {}
-
