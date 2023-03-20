@@ -3,6 +3,7 @@ import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { Types } from 'mongoose';
 import { IncomeModel } from 'src/income/income.model';
 import {MyDebtsModel} from "../myDebts/myDebts.model";
+import {DebtsToMeModel} from "../debtsToMe/debtsToMe.model";
 
 export interface UserModel extends Base {}
 export class UserModel extends TimeStamps {
@@ -29,6 +30,6 @@ export class UserModel extends TimeStamps {
 	@prop({ type: () => Types.ObjectId, ref: () => MyDebtsModel })
 	myDebts: Types.ObjectId[];
 
-	@prop({ type: () => Types.ObjectId })
+	@prop({ type: () => Types.ObjectId, ref: () => DebtsToMeModel})
 	debtsToMe: Types.ObjectId[];
 }

@@ -1,8 +1,8 @@
 import { prop } from '@typegoose/typegoose';
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 
-export interface MyDebtsModel extends Base {}
-export class MyDebtsModel extends TimeStamps {
+export interface DebtsToMeModel extends Base {}
+export class DebtsToMeModel extends TimeStamps {
 
     @prop({type: () => String, required: true})
     email: string;
