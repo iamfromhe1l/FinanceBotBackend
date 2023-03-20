@@ -20,6 +20,7 @@ export class UserService {
 		return await (await this.findUser({ email }))
 			.populate('incomes')
 			.populate('myDebts')
+			.populate('debtsToMe')
 			.execPopulate();
 	}
 

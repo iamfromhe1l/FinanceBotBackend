@@ -9,11 +9,13 @@ import { BalanceModule } from './balance/balance.module';
 import {MyDebtsModule} from "./myDebts/myDebts.module";
 import { IncomeModule } from './income/income.module';
 import { UserModule } from './user/user.module';
+import {DebtsToMeModule} from "./debtsToMe/debtsToMe.module";
 
 @Module({
 	imports: [
 		AuthModule,
 		MyDebtsModule,
+		DebtsToMeModule,
 		ConfigModule.forRoot(),
 		TypegooseModule.forRootAsync({
 			imports: [ConfigModule],
