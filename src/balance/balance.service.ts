@@ -8,21 +8,21 @@ import { UserService } from 'src/user/user.service';
 export class BalanceService {
 	constructor(private readonly userService: UserService) {}
 
-	async editBalance(dto: EditBalanceDto) {
+	async editBalance(dto: EditBalanceDto): Promise<{ balance: number }> {
 		const user = await this.userService.findUser({ email: dto.email });
 		user.balance = dto.editedBalance;
 		await user.save();
 		return { balance: user.balance };
 	}
 
-	async diffBalace(dto: DiffBalanceDto) {
+	async diffBalace(dto: DiffBalanceDto): Promise<{ balance: number }> {
 		const user = await this.userService.findUser({ email: dto.email });
 		user.balance += dto.diff;
 		await user.save();
 		return { balance: user.balance };
 	}
 
-	async getBalance({ email }: ValidateDto) {
+	async getBalance({ email }: ValidateDto): Promise<number> {
 		return (await this.userService.findUser({ email })).balance;
 	}
 }

@@ -17,16 +17,19 @@ export class UserService {
 	}
 
 	async getUserWithPopulate({ email }: ValidateDto) {
-		return (await this.findUser({ email })).populate('incomes').populate('myDebts').execPopulate();
+		return await (await this.findUser({ email }))
+			.populate('incomes')
+			.populate('myDebts')
+			.execPopulate();
 	}
 
 	async createUser(dto: CreateUserDto) {
-		const newUser = new this.userModel({
+		const newUser = await new this.userModel({
 			email: dto.email,
 			passwordHash: dto.passwordHash,
 			tgID: dto.tgID ? [dto.tgID] : [],
 		});
 
-		return newUser.save();
+		return await newUser.save();
 	}
 }

@@ -1,13 +1,15 @@
 import { ConfigService } from '@nestjs/config';
 
-export const getMongoConfig = (configService: ConfigService) => {
+export const getMongoConfig = (
+	configService: ConfigService,
+) => {
 	return {
 		uri: getMongoURI(configService),
 		...getMongoOptions(),
 	};
 };
 
-export const getMongoURI = (configService: ConfigService) => {
+export const getMongoURI = (configService: ConfigService): string => {
 	return (
 		'mongodb+srv://' +
 		configService.get('MONGO_USERNAME') +
@@ -17,7 +19,7 @@ export const getMongoURI = (configService: ConfigService) => {
 	);
 };
 
-const getMongoOptions = () => ({
+const getMongoOptions = (): Record<string, boolean> => ({
 	useNewUrlParser: true,
 	useCreateIndex: true,
 	useUnifiedTopology: true,
