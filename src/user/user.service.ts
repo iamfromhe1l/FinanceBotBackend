@@ -19,6 +19,7 @@ export class UserService {
 	async getUserWithPopulate({ email }: ValidateDto) {
 		return await (await this.findUser({ email }))
 			.populate('incomes')
+			.populate('myDebts')
 			.execPopulate();
 	}
 

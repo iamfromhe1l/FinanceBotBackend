@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 
 export const getMongoConfig = (
 	configService: ConfigService,
-): Record<string, boolean | string> => {
+) => {
 	return {
 		uri: getMongoURI(configService),
 		...getMongoOptions(),

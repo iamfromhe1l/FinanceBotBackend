@@ -2,6 +2,7 @@ import { prop } from '@typegoose/typegoose';
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { Types } from 'mongoose';
 import { IncomeModel } from 'src/income/income.model';
+import {MyDebtsModel} from "../myDebts/myDebts.model";
 
 export interface UserModel extends Base {}
 export class UserModel extends TimeStamps {
@@ -25,11 +26,9 @@ export class UserModel extends TimeStamps {
 	@prop({ type: () => Types.ObjectId })
 	expenses: Types.ObjectId[];
 
-	// Должен user
-	@prop({ type: () => Types.ObjectId })
-	owe: Types.ObjectId[];
+	@prop({ type: () => Types.ObjectId, ref: () => MyDebtsModel })
+	myDebts: Types.ObjectId[];
 
-	// Должны user'у
 	@prop({ type: () => Types.ObjectId })
-	oweMe: Types.ObjectId[];
+	debtsToMe: Types.ObjectId[];
 }

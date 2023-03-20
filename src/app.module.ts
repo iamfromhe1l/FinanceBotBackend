@@ -6,12 +6,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { getMongoConfig } from './configs/mongo.config';
 import { BalanceModule } from './balance/balance.module';
+import {MyDebtsModule} from "./myDebts/myDebts.module";
 import { IncomeModule } from './income/income.module';
 import { UserModule } from './user/user.module';
 
 @Module({
 	imports: [
 		AuthModule,
+		MyDebtsModule,
 		ConfigModule.forRoot(),
 		TypegooseModule.forRootAsync({
 			imports: [ConfigModule],
