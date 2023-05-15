@@ -17,7 +17,7 @@ export class BalanceController {
 		return await this.balanceService.diffBalace(dto);
 	}
 
-	@Get('getBalance')
+	@Get('get')
 	async getBalance(@Body() dto: ValidateDto): Promise<number> {
 		return await this.balanceService.getBalance(dto);
 	}

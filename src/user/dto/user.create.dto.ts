@@ -3,8 +3,8 @@ import { ValidateDto } from 'src/globalDto/validate.dto';
 
 export class CreateUserDto extends ValidateDto {
 	@IsString()
-	passwordHash: string;
+	name: string;
 
 	@IsString()
-	tgID?: string;
+	passwordHash: string;
 }
