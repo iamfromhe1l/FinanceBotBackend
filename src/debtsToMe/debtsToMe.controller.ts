@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { DebtsToMeService } from './debtsToMe.service';
 import { AddDebtsToMeDto } from './dto/add.debtsToMe.dto';
 import { RemoveDebtsToMeDto } from './dto/remove.debtsToMe.dto';
-import { ValidateDto } from '../globalDto/validate.dto';
 import { EditDebtsToMeDto } from './dto/edit.debtsToMe.dto';
 import { DebtsToMeModel } from './debtsToMe.model';
 import { UserModel } from '../user/user.model';
+import { GetCurrentUserEmail } from 'src/common/decorators/get-current-userEmail.decorator';
 
 @Controller('debtsToMe')
 export class DebtsToMeController {
@@ -13,32 +13,37 @@ export class DebtsToMeController {
 
 	@Post('add')
 	async addDebtsToMe(
+		@GetCurrentUserEmail() email: string,
 		@Body() dto: AddDebtsToMeDto,
 	): Promise<DebtsToMeModel | UserModel> {
-		return this.debtsToMeService.addDebtsToMe(dto);
+		return this.debtsToMeService.addDebtsToMe(email, dto);
 	}
 
 	@Delete()
 	async deleteDebtsToMe(
+		@GetCurrentUserEmail() email: string,
 		@Body() dto: RemoveDebtsToMeDto,
 	): Promise<DebtsToMeModel | number> {
-		return this.debtsToMeService.deleteDebtsToMe(dto);
+		return this.debtsToMeService.deleteDebtsToMe(email, dto);
 	}
 
 	@Get('debtsList')
-	async getDebtsList(@Body() dto: ValidateDto): Promise<DebtsToMeModel[]> {
-		return this.debtsToMeService.getDebtsList(dto);
+	async getDebtsList(
+		@GetCurrentUserEmail() email: string,
+	): Promise<DebtsToMeModel[]> {
+		return this.debtsToMeService.getDebtsList(email);
 	}
 
 	@Get('debtsTotal')
-	async getTotalDebts(@Body() dto: ValidateDto): Promise<number> {
-		return this.debtsToMeService.getTotalDebts(dto);
+	async getTotalDebts(@GetCurrentUserEmail() email: string): Promise<number> {
+		return this.debtsToMeService.getTotalDebts(email);
 	}
 
 	@Put()
 	async editDebtsToMe(
+		@GetCurrentUserEmail() email: string,
 		@Body() dto: EditDebtsToMeDto,
 	): Promise<DebtsToMeModel | number> {
-		return this.debtsToMeService.editDebtsToMe(dto);
+		return this.debtsToMeService.editDebtsToMe(email, dto);
 	}
 }

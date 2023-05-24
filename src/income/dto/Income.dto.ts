@@ -5,9 +5,8 @@ import {
 	Max,
 	MaxLength,
 } from 'class-validator';
-import { ValidateDto } from 'src/globalDto/validate.dto';
 
-export class IncomeDto extends ValidateDto {
+export class IncomeDto {
 	@MaxLength(20)
 	@IsNotEmpty()
 	@IsString()

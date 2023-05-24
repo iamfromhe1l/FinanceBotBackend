@@ -21,16 +21,16 @@ export class IncomeService {
 		await this.checkAllIncomes();
 	}
 
-	async createIncome(dto: IncomeDto) {
+	async createIncome(email: string, dto: IncomeDto) {
 		const newIncome = await new this.incomeModel({
-			email: dto.email,
+			email,
 			title: dto.title,
 			price: dto.price,
 			category: dto.category,
 			period: dto.period,
 			nextDate: await this.updateNextDate(dto.period),
 		});
-		const user = await this.userService.findUser({ email: dto.email });
+		const user = await this.userService.findUser(email);
 		user.incomes = [...user.incomes, newIncome.id];
 		await user.save();
 		return newIncome.save();
