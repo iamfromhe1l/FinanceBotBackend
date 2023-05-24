@@ -1,10 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { UserModel } from './user.model';
 
+@Global()
 @Module({
 	imports: [
 		ConfigModule,

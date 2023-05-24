@@ -6,7 +6,6 @@ import { TypegooseModule } from 'nestjs-typegoose';
 import { IncomeModel } from './income.model';
 import { BalanceModule } from 'src/balance/balance.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { UserModule } from 'src/user/user.module';
 
 @Module({
 	imports: [
@@ -20,7 +19,6 @@ import { UserModule } from 'src/user/user.module';
 			},
 		]),
 		BalanceModule,
-		UserModule,
 		ScheduleModule.forRoot(),
 	],
 	controllers: [IncomeController],

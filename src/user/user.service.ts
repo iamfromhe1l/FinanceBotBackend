@@ -19,6 +19,7 @@ export class UserService {
 	async getUserWithPopulate({ email }: ValidateDto) {
 		return await (await this.findUser({ email }))
 			.populate('incomes')
+			.populate('expenses')
 			.populate('myDebts')
 			.populate('debtsToMe')
 			.execPopulate();
@@ -27,10 +28,13 @@ export class UserService {
 	async createUser(dto: CreateUserDto) {
 		const newUser = await new this.userModel({
 			email: dto.email,
+			name: dto.name || 'User',
 			passwordHash: dto.passwordHash,
-			tgID: dto.tgID ? [dto.tgID] : [],
 		});
-
 		return await newUser.save();
+	}
+
+	async updateUserHashRT(email: string, hash: string) {
+		await this.userModel.findOneAndUpdate({ email }, { hashRt: hash });
 	}
 }
