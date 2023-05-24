@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { BalanceService } from './balance.service';
-import { ValidateDto } from 'src/globalDto/validate.dto';
 import { EditBalanceDto } from './dto/edit.balance.dto';
 import { DiffBalanceDto } from './dto/diff.balance.dto';
+import { GetCurrentUserEmail } from 'src/common/decorators/get-current-userEmail.decorator';
 
 @Controller('balance')
 export class BalanceController {
@@ -13,12 +13,15 @@ export class BalanceController {
 	}
 
 	@Post('diff')
-	async diffBalance(@Body() dto: DiffBalanceDto): Promise<{ balance: number }> {
-		return await this.balanceService.diffBalace(dto);
+	async diffBalance(
+		@GetCurrentUserEmail() email: string,
+		@Body() dto: DiffBalanceDto,
+	): Promise<{ balance: number }> {
+		return await this.balanceService.diffBalace(email, dto);
 	}
 
 	@Get('get')
-	async getBalance(@Body() dto: ValidateDto): Promise<number> {
-		return await this.balanceService.getBalance(dto);
+	async getBalance(@GetCurrentUserEmail() email: string): Promise<number> {
+		return await this.balanceService.getBalance(email);
 	}
 }
