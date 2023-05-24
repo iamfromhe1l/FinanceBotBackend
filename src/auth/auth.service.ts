@@ -10,7 +10,6 @@ import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Tokens } from './types/tokens.type';
-import { ValidateDto } from 'src/globalDto/validate.dto';
 
 @Injectable()
 export class AuthService {
@@ -56,8 +55,7 @@ export class AuthService {
 	async createUser(dto: AuthDto): Promise<Tokens> {
 		const salt = await genSalt(10);
 		const passwordHash = await hash(dto.password, salt);
-		await this.userService.createUser({
-			email: dto.email,
+		await this.userService.createUser(dto.email, {
 			name: dto.name,
 			passwordHash,
 		});
@@ -67,12 +65,12 @@ export class AuthService {
 		return tokens;
 	}
 
-	async findUser({ email }: ValidateDto) {
-		return await this.userService.findUser({ email });
+	async findUser(email: string) {
+		return await this.userService.findUser(email);
 	}
 
 	async validateUser(email: string, password: string): Promise<Tokens> {
-		const user = await this.findUser({ email });
+		const user = await this.findUser(email);
 		if (!user) throw new UnauthorizedException(USER_NOT_FOUND);
 
 		const isCorrectPassword = await compare(password, user.passwordHash);
@@ -88,7 +86,7 @@ export class AuthService {
 	}
 
 	async refreshTokens(email: string, rt: string): Promise<Tokens> {
-		const user = await this.findUser({ email });
+		const user = await this.findUser(email);
 		if (!user || !user.hashRt) throw new ForbiddenException('Access Denied');
 
 		console.log(rt);

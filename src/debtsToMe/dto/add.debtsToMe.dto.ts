@@ -1,11 +1,9 @@
-import {IsNumber, IsString} from 'class-validator';
-import {ValidateDto} from "../../globalDto/validate.dto";
+import { IsNumber, IsString } from 'class-validator';
 
-export class AddDebtsToMeDto extends ValidateDto {
-    @IsString()
-    name: string;
+export class AddDebtsToMeDto {
+	@IsString()
+	name: string;
 
-    @IsNumber()
-    amount: number;
+	@IsNumber()
+	amount: number;
 }
-

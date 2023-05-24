@@ -8,8 +8,11 @@ import { GetCurrentUserEmail } from 'src/common/decorators/get-current-userEmail
 export class BalanceController {
 	constructor(private readonly balanceService: BalanceService) {}
 	@Post('edit')
-	async editBalance(@Body() dto: EditBalanceDto): Promise<{ balance: number }> {
-		return await this.balanceService.editBalance(dto);
+	async editBalance(
+		@GetCurrentUserEmail() email: string,
+		@Body() dto: EditBalanceDto,
+	): Promise<{ balance: number }> {
+		return await this.balanceService.editBalance(email, dto);
 	}
 
 	@Post('diff')

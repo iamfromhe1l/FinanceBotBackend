@@ -7,8 +7,11 @@ import { UserService } from 'src/user/user.service';
 export class BalanceService {
 	constructor(private readonly userService: UserService) {}
 
-	async editBalance(dto: EditBalanceDto): Promise<{ balance: number }> {
-		const user = await this.userService.findUser({ email: dto.email });
+	async editBalance(
+		email: string,
+		dto: EditBalanceDto,
+	): Promise<{ balance: number }> {
+		const user = await this.userService.findUser(email);
 		user.balance = dto.editedBalance;
 		await user.save();
 		return { balance: user.balance };
@@ -18,13 +21,13 @@ export class BalanceService {
 		email: string,
 		dto: DiffBalanceDto,
 	): Promise<{ balance: number }> {
-		const user = await this.userService.findUser({ email });
+		const user = await this.userService.findUser(email);
 		user.balance += dto.diff;
 		await user.save();
 		return { balance: user.balance };
 	}
 
 	async getBalance(email: string): Promise<number> {
-		return (await this.userService.findUser({ email })).balance;
+		return (await this.userService.findUser(email)).balance;
 	}
 }

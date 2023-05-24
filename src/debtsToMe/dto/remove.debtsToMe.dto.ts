@@ -1,9 +1,6 @@
-import {IsString} from 'class-validator';
-import {ValidateDto} from "../../globalDto/validate.dto";
+import { IsString } from 'class-validator';
 
-export class RemoveDebtsToMeDto extends ValidateDto {
-    @IsString()
-    name: string;
-
+export class RemoveDebtsToMeDto {
+	@IsString()
+	name: string;
 }
-

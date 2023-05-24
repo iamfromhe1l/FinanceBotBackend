@@ -1,13 +1,13 @@
-import { Body, Controller, Get } from '@nestjs/common';
-import { ValidateDto } from 'src/globalDto/validate.dto';
+import { Controller, Get } from '@nestjs/common';
 import { UserService } from './user.service';
+import { GetCurrentUserEmail } from 'src/common/decorators/get-current-userEmail.decorator';
 
 @Controller('user')
 export class UserController {
 	constructor(private readonly userService: UserService) {}
 
 	@Get('getUser')
-	async getUser(@Body() dto: ValidateDto) {
-		return await this.userService.getUserWithPopulate(dto);
+	async getUser(@GetCurrentUserEmail() email: string) {
+		return await this.userService.getUserWithPopulate(email);
 	}
 }
