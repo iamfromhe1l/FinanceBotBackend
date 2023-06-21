@@ -52,7 +52,8 @@ export class MyDebtsService {
 		const user = await this.userService.findUser(email);
 		user.myDebts.splice(user.myDebts.indexOf(debt.id));
 		await user.save();
-		await debt.remove();
+		await debt.deleteOne();
+		await debt.save;
 		return debt;
 	}
 

@@ -20,7 +20,5 @@ export const getMongoURI = (configService: ConfigService): string => {
 };
 
 const getMongoOptions = (): Record<string, boolean> => ({
-	useNewUrlParser: true,
-	useCreateIndex: true,
 	useUnifiedTopology: true,
 });
