@@ -12,6 +12,7 @@ import { UserModule } from './user/user.module';
 import { DebtsToMeModule } from './debtsToMe/debtsToMe.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './common/guards/at.guard';
+import {PublicModule} from "./public/public.module";
 
 @Module({
 	imports: [
@@ -27,6 +28,7 @@ import { AtGuard } from './common/guards/at.guard';
 		BalanceModule,
 		IncomeModule,
 		UserModule,
+		PublicModule,
 	],
 	controllers: [AppController],
 	providers: [

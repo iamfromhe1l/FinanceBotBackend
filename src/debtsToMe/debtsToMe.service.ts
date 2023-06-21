@@ -74,6 +74,11 @@ export class DebtsToMeService {
 		return user['debtsToMe'];
 	}
 
+	async getDebtsListInRange(email: string): Promise<DebtsToMeModel[]> {
+		const user = await this.userService.getUserWithPopulate(email);
+		return user['debtsToMe'];
+	}
+
 	async getTotalDebts(email: string): Promise<number> {
 		const debtsList = await this.getDebtsList(email);
 		return debtsList.map((el) => el.amount).reduce((acc, el) => acc + el, 0);
