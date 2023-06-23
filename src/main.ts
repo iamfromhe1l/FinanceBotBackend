@@ -10,7 +10,7 @@ async function bootstrap() {
 
 	app.setGlobalPrefix('api');
 	const PORT = process.env.PORT ?? 3002;
-	await app.listen(PORT);
 	app.enableCors();
+	await app.listen(PORT);
 }
 bootstrap();

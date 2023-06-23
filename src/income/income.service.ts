@@ -22,14 +22,27 @@ export class IncomeService {
 	}
 
 	async createIncome(email: string, dto: IncomeDto) {
-		const newIncome = await new this.incomeModel({
-			email,
-			title: dto.title,
-			price: dto.price,
-			category: dto.category,
-			period: dto.period,
-			nextDate: await this.updateNextDate(dto.period),
-		});
+		let newIncome;
+		if (dto.period!=undefined){
+			newIncome = await new this.incomeModel({
+				email,
+				title: dto.title,
+				price: dto.price,
+				category: dto.category,
+				period: dto.period,
+				nextDate: await this.updateNextDate(dto.period),
+				incomeDate: Date.now()
+			});
+		}else{
+			newIncome = await new this.incomeModel({
+				email,
+				title: dto.title,
+				price: dto.price,
+				category: dto.category,
+				incomeDate: Date.now()
+			});
+		}
+
 		const user = await this.userService.findUser(email);
 		user.incomes = [...user.incomes, newIncome.id];
 		await user.save();
@@ -37,7 +50,7 @@ export class IncomeService {
 	}
 	async checkAllIncomes(): Promise<void> {
 		for await (const income of this.incomeModel.find()) {
-			if (income.nextDate < new Date()) {
+			if (income.period && income.nextDate < new Date()) {
 				this.balanceService.diffBalace(income.email, { diff: income.price });
 				income.nextDate = await this.updateNextDate(income.period);
 			}
@@ -48,5 +61,17 @@ export class IncomeService {
 		const currentDate: Date = new Date();
 		currentDate.setDate(currentDate.getDate() + period);
 		return currentDate;
+	}
+
+	async stopScheduleIncomes(email: string,title: string): Promise<void>{
+		const income = await this.incomeModel.findOne({  email: email,title:title });
+		if (!income.nextDate) {
+			return ;
+		}
+		await this.checkAllIncomes();
+		await this.incomeModel.updateOne(
+			{  email: email,title:title },
+			{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now()} },
+		);
 	}
 }

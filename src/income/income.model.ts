@@ -16,10 +16,16 @@ export class IncomeModel extends TimeStamps {
 	category: string;
 
 	// In days
-	@prop({ required: true, type: () => Number })
-	period: number;
+	@prop({ type: () => Number })
+	period?: number;
 
 	// Next income Date
+	@prop({ type: () => Date })
+	nextDate?: Date;
+
 	@prop({ type: () => Date, required: true })
-	nextDate: Date;
+	incomeDate: Date;
+
+	@prop({ type: () => Date })
+	lastDate?: Date;
 }

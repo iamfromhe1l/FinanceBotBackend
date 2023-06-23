@@ -1,6 +1,6 @@
 import {
 	IsNotEmpty,
-	IsNumber,
+	IsNumber, IsOptional,
 	IsString,
 	Max,
 	MaxLength,
@@ -16,9 +16,10 @@ export class IncomeDto {
 	@IsNumber()
 	price: number;
 
+	@IsOptional()
 	@Max(365)
 	@IsNumber()
-	period: number;
+	period?: number;
 
 	@MaxLength(20)
 	@IsString()

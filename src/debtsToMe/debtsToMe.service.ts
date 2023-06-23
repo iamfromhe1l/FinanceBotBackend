@@ -75,6 +75,7 @@ export class DebtsToMeService {
 		return user['debtsToMe'];
 	}
 
+	//TODO
 	async getDebtsListInRange(email: string): Promise<DebtsToMeModel[]> {
 		const user = await this.userService.getUserWithPopulate(email);
 		return user['debtsToMe'];
