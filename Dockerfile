@@ -2,6 +2,8 @@ FROM node
 
 WORKDIR /app
 
+VOLUME /app/certs
+
 COPY package*.json /app
 
 RUN npm install --production --force
