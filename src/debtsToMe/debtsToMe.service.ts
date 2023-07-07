@@ -76,9 +76,9 @@ export class DebtsToMeService {
 	}
 
 	//TODO
-	async getDebtsListInRange(email: string): Promise<DebtsToMeModel[]> {
+	async getRangedDebtsList(email: string,step = 10,current=0): Promise<DebtsToMeModel[]> {
 		const user = await this.userService.getUserWithPopulate(email);
-		return user['debtsToMe'];
+		return user['debtsToMe'].slice(current,current+step);
 	}
 
 	async getTotalDebts(email: string): Promise<number> {

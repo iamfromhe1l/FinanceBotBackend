@@ -2,12 +2,18 @@ FROM node
 
 WORKDIR /app
 
-COPY . .
+COPY package*.json /app
 
-RUN npm install --force
+RUN npm install --production --force
+
+RUN npm i -g @nestjs/cli
+
+COPY . .
 
 ENV PORT 3002
 
 EXPOSE $PORT
 
-RUN npm run build
+RUN nest build
+
+CMD ["npm","run","start:prod"]

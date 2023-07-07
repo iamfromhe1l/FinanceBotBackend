@@ -7,10 +7,9 @@ async function bootstrap() {
 
 	// global validation pipe
 	app.useGlobalPipes(new ValidationPipe());
-
+	app.enableCors();
 	app.setGlobalPrefix('api');
 	const PORT = process.env.PORT ?? 3002;
-	app.enableCors();
 	await app.listen(PORT);
 }
 bootstrap();
