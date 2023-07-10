@@ -6,7 +6,7 @@ import { GetCurrentUserEmail } from 'src/common/decorators/get-current-userEmail
 export class UserController {
 	constructor(private readonly userService: UserService) {}
 
-	@Get('getUser')
+	@Get()
 	async getUser(@GetCurrentUserEmail() email: string) {
 		return await this.userService.getUserWithPopulate(email);
 	}

@@ -74,4 +74,15 @@ export class IncomeService {
 			{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now()} },
 		);
 	}
+
+	async deleteIncome(email: string,title: string): Promise<IncomeModel | number>{
+		const income = await this.incomeModel.findOne({  email: email,title:title });
+		if (!income) return -1;
+		const user = await this.userService.findUser(email);
+		user.debtsToMe.splice(user.debtsToMe.indexOf(income.id));
+		await user.save();
+		await income.deleteOne();
+		await income.save;
+		return income;
+	}
 }

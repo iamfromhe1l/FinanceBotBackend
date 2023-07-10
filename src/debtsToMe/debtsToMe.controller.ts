@@ -6,6 +6,7 @@ import { EditDebtsToMeDto } from './dto/edit.debtsToMe.dto';
 import { DebtsToMeModel } from './debtsToMe.model';
 import { UserModel } from '../user/user.model';
 import { GetCurrentUserEmail } from 'src/common/decorators/get-current-userEmail.decorator';
+import {CloseDebtsToMeDto} from "./dto/close.debtsToMe.dto";
 
 @Controller('debtsToMe')
 export class DebtsToMeController {
@@ -18,6 +19,15 @@ export class DebtsToMeController {
 	): Promise<DebtsToMeModel | UserModel> {
 		return this.debtsToMeService.addDebtsToMe(email, dto);
 	}
+
+	@Post('close')
+	async closeDebtToMe(
+		@GetCurrentUserEmail() email: string,
+		@Body() dto: CloseDebtsToMeDto
+	): Promise<DebtsToMeModel | number>{
+		return this.debtsToMeService.closeDebtToMe(email,dto);
+	}
+
 
 	@Delete()
 	async deleteDebtsToMe(

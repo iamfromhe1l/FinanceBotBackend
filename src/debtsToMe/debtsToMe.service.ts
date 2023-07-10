@@ -7,6 +7,7 @@ import { RemoveDebtsToMeDto } from './dto/remove.debtsToMe.dto';
 import { UserService } from '../user/user.service';
 import { EditDebtsToMeDto } from './dto/edit.debtsToMe.dto';
 import { UserModel } from '../user/user.model';
+import {CloseDebtsToMeDto} from "./dto/close.debtsToMe.dto";
 
 @Injectable()
 export class DebtsToMeService {
@@ -84,5 +85,13 @@ export class DebtsToMeService {
 	async getTotalDebts(email: string): Promise<number> {
 		const debtsList = await this.getDebtsList(email);
 		return debtsList.map((el) => el.amount).reduce((acc, el) => acc + el, 0);
+	}
+
+	async closeDebtToMe(email: string, dto: CloseDebtsToMeDto){
+		const id = dto.id;
+		const debt = this.debtsToMeModel.findOne({"_id":id});
+		debt.isClosed = true;
+		debt.save();
+		return debt;
 	}
 }

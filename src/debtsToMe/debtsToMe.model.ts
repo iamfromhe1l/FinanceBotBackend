@@ -16,4 +16,7 @@ export class DebtsToMeModel extends TimeStamps {
     @prop({ type: () => Date, required: true })
     debtDate: Date;
 
+    @prop({ type: () => Boolean })
+    isClosed?: boolean;
+
 }
