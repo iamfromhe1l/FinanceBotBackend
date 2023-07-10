@@ -4,7 +4,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 import {PublicController} from "./public.controller";
 import {PublicService} from "./public.service";
 import {TypegooseModule} from "nestjs-typegoose";
-import {DebtsToMeModel} from "../debtsToMe/debtsToMe.model";
 import {UserModel} from "../user/user.model";
 import {PublicModel} from "./public.model";
 

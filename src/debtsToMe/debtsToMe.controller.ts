@@ -24,7 +24,7 @@ export class DebtsToMeController {
 	async closeDebtToMe(
 		@GetCurrentUserEmail() email: string,
 		@Body() dto: CloseDebtsToMeDto
-	): Promise<DebtsToMeModel | number>{
+	): Promise<void>{
 		return this.debtsToMeService.closeDebtToMe(email,dto);
 	}
 
