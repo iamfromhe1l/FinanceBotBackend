@@ -21,25 +21,39 @@ export class IncomeService {
 		await this.checkAllIncomes();
 	}
 
+	async getIncomeById(id) {
+		return await this.incomeModel.find({ id });
+	}
+
+	async getIncomesList(email: string) {
+		return await this.incomeModel.find({ email });
+	}
+
+	async getRangedIncomesList(email: string, step = 10, current = 0) {
+		return await this.incomeModel
+			.find({ email })
+			.limit((current + 1) * step)
+			.skip(current * step);
+	}
 	async createIncome(email: string, dto: IncomeDto) {
 		let newIncome;
-		if (dto.period!=undefined){
-			newIncome = await new this.incomeModel({
+		if (dto.period != undefined) {
+			newIncome = new this.incomeModel({
 				email,
 				title: dto.title,
 				price: dto.price,
 				category: dto.category,
 				period: dto.period,
 				nextDate: await this.updateNextDate(dto.period),
-				incomeDate: Date.now()
+				incomeDate: Date.now(),
 			});
-		}else{
-			newIncome = await new this.incomeModel({
+		} else {
+			newIncome = new this.incomeModel({
 				email,
 				title: dto.title,
 				price: dto.price,
 				category: dto.category,
-				incomeDate: Date.now()
+				incomeDate: Date.now(),
 			});
 		}
 
@@ -63,26 +77,35 @@ export class IncomeService {
 		return currentDate;
 	}
 
-	async stopScheduleIncomes(email: string,title: string): Promise<void>{
-		const income = await this.incomeModel.findOne({  email: email,title:title });
+	async stopScheduleIncomes(email: string, title: string): Promise<void> {
+		const income = await this.incomeModel.findOne({
+			email: email,
+			title: title,
+		});
 		if (!income.nextDate) {
-			return ;
+			return;
 		}
 		await this.checkAllIncomes();
 		await this.incomeModel.updateOne(
-			{  email: email,title:title },
-			{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now()} },
+			{ email: email, title: title },
+			{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now() } },
 		);
 	}
 
-	async deleteIncome(email: string,title: string): Promise<IncomeModel | number>{
-		const income = await this.incomeModel.findOne({  email: email,title:title });
+	async deleteIncome(
+		email: string,
+		title: string,
+	): Promise<IncomeModel | number> {
+		const income = await this.incomeModel.findOne({
+			email: email,
+			title: title,
+		});
 		if (!income) return -1;
 		const user = await this.userService.findUser(email);
 		user.debtsToMe.splice(user.debtsToMe.indexOf(income.id));
 		await user.save();
 		await income.deleteOne();
-		await income.save;
+		await income.save();
 		return income;
 	}
 }
