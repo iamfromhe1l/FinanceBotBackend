@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Post, Put } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	Delete,
+	Get,
+	Post,
+	Put,
+	Query,
+} from '@nestjs/common';
 import { MyDebtsService } from './myDebts.service';
 import { AddMyDebtsDto } from './dto/add.myDebts.dto';
 import { RemoveMyDebtsDto } from './dto/remove.myDebts.dto';
@@ -37,6 +45,15 @@ export class MyDebtsController {
 	@Get('debtsTotal')
 	async getTotalDebts(@GetCurrentUserEmail() email: string): Promise<number> {
 		return this.myDebtsService.getTotalDebts(email);
+	}
+
+	@Get('rangedDebtsList')
+	async getRangedDebtsList(
+		@GetCurrentUserEmail() email: string,
+		@Query('step') step: number,
+		@Query('current') current: number,
+	): Promise<MyDebtsModel[]> {
+		return this.myDebtsService.getRangedDebtsList(email, step, current);
 	}
 
 	@Put()
