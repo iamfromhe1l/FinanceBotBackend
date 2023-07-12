@@ -8,6 +8,16 @@ import {UserModel} from "../user/user.model";
 import {ReturnModelType} from "@typegoose/typegoose";
 import {BalanceModel} from "./balance.model";
 import {names} from "./names";
+import {Edit2BalanceDto} from "./dto/edit2.balance.dto";
+import {Diff2BalanceDto} from "./dto/diff2.balance.dto";
+
+type typer = {
+    "disclaimer": string,
+    "license": string,
+    "timestamp": number,
+    "base": string,
+    "rates": Map<string,number>
+}
 
 @Injectable()
 export class BalanceService {
@@ -30,7 +40,7 @@ export class BalanceService {
         return {balance: user.balance};
     }
 
-    async diffBalace(
+    async diffBalance(
         email: string,
         dto: DiffBalanceDto,
     ): Promise<{ balance: number }> {
@@ -45,12 +55,33 @@ export class BalanceService {
     }
 
 
-    // New version
+    // ------------------------------- New version ---------------------------------------
 
-    async addCurrency(email: string,curr: string){
+    isCurrencyExist(newBase:string):  boolean{
+        return Object.keys(names).includes(newBase);
+    }
+
+    // При каждом обновлении курсов меняем базовую валюту на рубли в кроне.
+    // Если у пользователя выбрана другая базовая валюта, то при каждом запросе на баланс
+    // Происходит смена базовой валюты на нужную.
+    changeBaseCurrency(rates: Map<string,number>,newBase: string):Map<string,number> | number{
+        if (!this.isCurrencyExist(newBase)) return -1;
+        const baseCurrency = rates.get(newBase);
+        const newRates = new Map<string,number>;
+        rates.forEach((value,key) => {
+            if (key != newBase){
+                newRates.set(key,value / baseCurrency);
+            }else {
+                newRates.set(key,1);
+            }
+        });
+        return newRates;
+    }
+
+    async addCurrency(email: string,newBase: string): Promise<boolean>{
         const user = await this.userService.findUser(email);
-        if (!user.listBalance.has(curr) && Object.keys(names).includes(curr)){
-            user.listBalance.set(curr,0);
+        if (!user.listBalance.has(newBase) && this.isCurrencyExist(newBase)){
+            user.listBalance.set(newBase,0);
             await user.save();
             return true;
         }
@@ -58,26 +89,60 @@ export class BalanceService {
     }
 
     @Cron(CronExpression.EVERY_3_HOURS)
-    async updateCurrenciesData() {
-        const currencies = await fetch('https://openexchangerates.org/api/latest.json?app_id=f31efe911527419f9c314d915e958c0c', {method: 'GET', headers: {accept: 'application/json'}})
+    async updateCurrenciesData(): Promise<void> {
+        const currencies = await fetch('https://openexchangerates.org/api/latest.json?app_id=f31efe911527419f9c314d915e958c0c',
+            {method: 'GET', headers: {accept: 'application/json'}})
             .then(response => response.json())
             .catch(err => console.error(err));
         await this.balanceModel.deleteOne({});
+        const rates = new Map<string,number>;
+        Object.keys(currencies.rates).forEach(key => {
+            rates.set(key, currencies.rates[key]);
+        });
+        const newRates = this.changeBaseCurrency(rates,'RUB');
         const data = new this.balanceModel({
-        	"currencies": currencies.rates
+        	"currencies": newRates
         });
         await data.save();
     }
 
-    getNames(){
-        const data = JSON.stringify(names);
-        return data;
+    getNames(): string{
+        return JSON.stringify(names);
     }
 
-    async getCurrencies(){
+    async getCurrencies(newBase?:string): Promise<string>{
         const curr = await this.balanceModel.find({});
-        console.log(curr);
-        const data = JSON.stringify(curr);
-        return data;
+        if (newBase && this.isCurrencyExist(newBase)){
+            return JSON.stringify(this.changeBaseCurrency(curr[0].currencies,newBase));
+        }
+        return JSON.stringify(curr[0].currencies);
+    }
+
+    async getBalance2(email: string): Promise<Map<string,number>>{
+        const user = await this.userService.findUser(email);
+        return user.listBalance;
+    }
+
+    async editBalance2(
+        email: string,
+        dto: Edit2BalanceDto,
+    ): Promise<number | Map<string,number>> {
+        if (this.isCurrencyExist(dto.currencyName)) return  -1;
+        const user = await this.userService.findUser(email);
+        user.listBalance.set(dto.currencyName,dto.editedBalance);
+        await user.save();
+        return user.listBalance;
+    }
+
+    async diffBalance2(
+        email: string,
+        dto: Diff2BalanceDto,
+    ): Promise<number | Map<string,number>> {
+        if (this.isCurrencyExist(dto.currencyName)) return  -1;
+        const user = await this.userService.findUser(email);
+        const newValue = user.listBalance.get(dto.currencyName) + dto.diff;
+        user.listBalance.set(dto.currencyName,newValue);
+        await user.save();
+        return user.listBalance;
     }
 }
