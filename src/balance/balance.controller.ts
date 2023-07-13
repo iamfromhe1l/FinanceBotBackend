@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Param, Post, Put} from '@nestjs/common';
+import {Body, Controller, Get, Param, Post, Put, Query} from '@nestjs/common';
 import {BalanceService} from './balance.service';
 import {EditBalanceDto} from './dto/edit.balance.dto';
 import {DiffBalanceDto} from './dto/diff.balance.dto';
@@ -57,8 +57,8 @@ export class BalanceController {
 
     @Public()
     @Get('currencies')
-    async getCurrencies(): Promise<string>{
-        return await this.balanceService.getCurrencies();
+    async getCurrencies(@Query('newBase') newBase?: string): Promise<string>{
+        return await this.balanceService.getCurrencies(newBase);
     }
 
     @Put()

@@ -11,13 +11,6 @@ import {names} from "./names";
 import {Edit2BalanceDto} from "./dto/edit2.balance.dto";
 import {Diff2BalanceDto} from "./dto/diff2.balance.dto";
 
-type typer = {
-    "disclaimer": string,
-    "license": string,
-    "timestamp": number,
-    "base": string,
-    "rates": Map<string,number>
-}
 
 @Injectable()
 export class BalanceService {
@@ -106,16 +99,22 @@ export class BalanceService {
         await data.save();
     }
 
+
+    // TODO Добавить русские названия валют
     getNames(): string{
         return JSON.stringify(names);
     }
 
     async getCurrencies(newBase?:string): Promise<string>{
         const curr = await this.balanceModel.find({});
+        console.log(newBase);
         if (newBase && this.isCurrencyExist(newBase)){
-            return JSON.stringify(this.changeBaseCurrency(curr[0].currencies,newBase));
+            const data = this.changeBaseCurrency(curr[0].currencies,newBase) as Map<string,number>;
+            // console.log(await JSON.stringify(data));
+            return JSON.stringify([...data]);
         }
-        return JSON.stringify(curr[0].currencies);
+        return JSON.stringify([...curr[0].currencies]);
+        // return curr[0].currencies;
     }
 
     async getBalance2(email: string): Promise<Map<string,number>>{
