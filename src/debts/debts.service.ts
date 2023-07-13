@@ -1,36 +1,39 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from 'nestjs-typegoose';
 import { ReturnModelType } from '@typegoose/typegoose';
-import { MyDebtsModel } from './myDebts.model';
-import { AddMyDebtsDto } from './dto/add.myDebts.dto';
-import { RemoveMyDebtsDto } from './dto/remove.myDebts.dto';
+import { DebtsModel } from './debts.model';
+import { AddDebtsDto } from './dto/add.debts.dto';
+import { RemoveDebtsDto } from './dto/remove.debts.dto';
 import { UserService } from '../user/user.service';
-import { EditMyDebtsDto } from './dto/edit.myDebts.dto';
+import { EditDebtsDto } from './dto/edit.debts.dto';
 import { UserModel } from '../user/user.model';
+import { CloseDebtsDto } from './dto/close.debts.dto';
 
 @Injectable()
-export class MyDebtsService {
+export class DebtsService {
 	constructor(
-		@InjectModel(MyDebtsModel)
-		private readonly myDebtsModel: ReturnModelType<typeof MyDebtsModel>,
+		@InjectModel(DebtsModel)
+		private readonly debtsModel: ReturnModelType<typeof DebtsModel>,
 		private readonly userService: UserService,
 	) {}
 
 	async getDebt(email, name) {
-		return await this.myDebtsModel.findOne({ name: name, email: email }).exec();
+		return await this.debtsModel
+			.findOne({ name: name, email: email })
+			.exec();
 	}
 
-	async addMyDebt(
+	async addDebt(
 		email: string,
-		dto: AddMyDebtsDto,
-	): Promise<MyDebtsModel | UserModel> {
+		dto: AddDebtsDto,
+	): Promise<DebtsModel | UserModel> {
 		const debt = await this.getDebt(email, dto.name);
 		if (debt) {
 			debt.amount += dto.amount;
 			await debt.save();
 			return debt;
 		}
-		const newDebt = new this.myDebtsModel({
+		const newDebt = new this.debtsModel({
 			email,
 			name: dto.name,
 			amount: dto.amount,
@@ -38,40 +41,29 @@ export class MyDebtsService {
 		});
 		await newDebt.save();
 		const user = await this.userService.findUser(email);
-		user.myDebts = [...user.myDebts, newDebt.id];
+		user.debts = [...user.debts, newDebt.id];
 		await user.save();
 		return user;
 	}
 
-	async deleteMyDebt(
+	async deleteDebt(
 		email: string,
-		dto: RemoveMyDebtsDto,
-	): Promise<MyDebtsModel | number> {
+		dto: RemoveDebtsDto,
+	): Promise<DebtsModel | number> {
 		const debt = await this.getDebt(email, dto.name);
 		if (!debt) return -1;
 		const user = await this.userService.findUser(email);
-		user.myDebts.splice(user.myDebts.indexOf(debt.id));
+		user.debts.splice(user.debts.indexOf(debt.id));
 		await user.save();
 		await debt.deleteOne();
 		await debt.save;
 		return debt;
 	}
 
-	async getRangedDebtsList(
+	async editDebt(
 		email: string,
-		step = 10,
-		current = 0,
-	): Promise<MyDebtsModel[]> {
-		return await this.myDebtsModel
-			.find({ email })
-			.limit((current + 1) * step)
-			.skip(current * step);
-	}
-
-	async editMyDebt(
-		email: string,
-		dto: EditMyDebtsDto,
-	): Promise<MyDebtsModel | number> {
+		dto: EditDebtsDto,
+	): Promise<DebtsModel | number> {
 		const debt = await this.getDebt(email, dto.name);
 		if (!debt) return -1;
 		debt.amount = dto.editedAmount;
@@ -79,13 +71,32 @@ export class MyDebtsService {
 		return debt;
 	}
 
-	async getDebtsList(email: string): Promise<MyDebtsModel[]> {
+	async getDebtsList(email: string): Promise<DebtsModel[]> {
 		const user = await this.userService.getUserWithPopulate(email);
-		return user['myDebts'];
+		return user['debtsToMe'];
+	}
+
+	async getRangedDebtsList(
+		email: string,
+		step = 10,
+		current = 0,
+	): Promise<DebtsModel[]> {
+		return this.debtsModel
+			.find({ email })
+			.limit((current + 1) * step)
+			.skip(current * step);
 	}
 
 	async getTotalDebts(email: string): Promise<number> {
 		const debtsList = await this.getDebtsList(email);
 		return debtsList.map((el) => el.amount).reduce((acc, el) => acc + el, 0);
+	}
+
+	async closeDebt(email: string, dto: CloseDebtsDto) {
+		const id = dto.id;
+		await this.debtsModel.updateOne(
+			{ _id:id},
+			{  $set: { isClosed: true} },
+		);
 	}
 }

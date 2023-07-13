@@ -5,8 +5,9 @@ import {
 	Max,
 	MaxLength,
 } from 'class-validator';
+import {payment} from "../payment.type";
 
-export class IncomeDto {
+export class PaymentDto {
 	@MaxLength(20)
 	@IsNotEmpty()
 	@IsString()
@@ -24,4 +25,7 @@ export class IncomeDto {
 	@MaxLength(20)
 	@IsString()
 	category: string;
+
+	@IsString()
+	type: payment;
 }

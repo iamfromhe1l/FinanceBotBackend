@@ -6,10 +6,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { getMongoConfig } from './configs/mongo.config';
 import { BalanceModule } from './balance/balance.module';
-import { MyDebtsModule } from './myDebts/myDebts.module';
-import { IncomeModule } from './income/income.module';
+import { PaymentModule } from './payment/payment.module';
 import { UserModule } from './user/user.module';
-import { DebtsToMeModule } from './debtsToMe/debtsToMe.module';
+import { DebtsModule } from './debts/debts.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './common/guards/at.guard';
 import {PublicModule} from "./public/public.module";
@@ -17,16 +16,15 @@ import {PublicModule} from "./public/public.module";
 @Module({
 	imports: [
 		AuthModule,
-		MyDebtsModule,
-		DebtsToMeModule,
 		ConfigModule.forRoot(),
 		TypegooseModule.forRootAsync({
 			imports: [ConfigModule],
 			inject: [ConfigService],
 			useFactory: getMongoConfig,
 		}),
+		DebtsModule,
 		BalanceModule,
-		IncomeModule,
+		PaymentModule,
 		UserModule,
 		PublicModule,
 	],

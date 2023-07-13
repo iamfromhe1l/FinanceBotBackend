@@ -1,9 +1,9 @@
 import { IsNumber, IsString } from 'class-validator';
 
-export class AddDebtsToMeDto {
+export class EditDebtsDto {
 	@IsString()
 	name: string;
 
 	@IsNumber()
-	amount: number;
+	editedAmount: number;
 }

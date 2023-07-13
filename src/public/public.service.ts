@@ -16,32 +16,32 @@ export class PublicService {
     ) {
     }
 
-    @Cron(CronExpression.EVERY_DAY_AT_11PM)
-    // @Cron(CronExpression.EVERY_5_SECONDS)
-    async updatePublicData() {
-        const usersCount = await this.userModel.countDocuments();
-        const users = await this.userModel.find().populate([
-            {path: 'incomes'},
-            {path: 'expenses'},
-            {path: 'myDebts'},
-            {path: 'debtsToMe'}
-        ]).exec();
-        let totalBalance=0, totalDebtsToMe=0, totalMyDebts=0;
-        users.forEach((el) => {
-            totalBalance += el.balance;
-            totalDebtsToMe += el.debtsToMe.reduce((acc,v) => acc+=v.amount,0);
-            totalMyDebts += el.myDebts.reduce((acc,v) => acc+=v.amount,0);
-        });
-        await this.publicModel.deleteOne({});
-        const data = new this.publicModel({
-            usersCount,
-            totalBalance,
-            totalDebtsToMe,
-            totalMyDebts
-        });
-        await data.save();
-        return data;
-    }
+    // Не работает терпила из-за удаления debsToMe
+    // @Cron(CronExpression.EVERY_DAY_AT_11PM)
+    // async updatePublicData() {
+    //     const usersCount = await this.userModel.countDocuments();
+    //     const users = await this.userModel.find().populate([
+    //         {path: 'incomes'},
+    //         {path: 'expenses'},
+    //         {path: 'myDebts'},
+    //         {path: 'debtsToMe'}
+    //     ]).exec();
+    //     let totalBalance=0, totalDebtsToMe=0, totalMyDebts=0;
+    //     users.forEach((el) => {
+    //         totalBalance += el.balance;
+    //         totalDebtsToMe += el.debtsToMe.reduce((acc,v) => acc+=v.amount,0);
+    //         totalMyDebts += el.myDebts.reduce((acc,v) => acc+=v.amount,0);
+    //     });
+    //     await this.publicModel.deleteOne({});
+    //     const data = new this.publicModel({
+    //         usersCount,
+    //         totalBalance,
+    //         totalDebtsToMe,
+    //         totalMyDebts
+    //     });
+    //     await data.save();
+    //     return data;
+    // }
 
     async getPublicData(){
         const doc: PublicModel = await this.publicModel.findOne({});
@@ -49,8 +49,7 @@ export class PublicService {
             usersCount:doc.usersCount,
             totalBalance:doc.totalBalance,
             totalDebtsToMe:doc.totalDebtsToMe,
-            totalMyDebts:doc.totalMyDebts,
-
+            totalMyDebts:doc.totalMyDebts
         };
     }
 }

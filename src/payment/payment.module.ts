@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { IncomeController } from './income.controller';
-import { IncomeService } from './income.service';
+import { PaymentController } from './payment.controller';
+import { PaymentService } from './payment.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
-import { IncomeModel } from './income.model';
+import { PaymentModel } from './payment.model';
 import { BalanceModule } from 'src/balance/balance.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
@@ -12,16 +12,16 @@ import { ScheduleModule } from '@nestjs/schedule';
 		ConfigModule,
 		TypegooseModule.forFeature([
 			{
-				typegooseClass: IncomeModel,
+				typegooseClass: PaymentModel,
 				schemaOptions: {
-					collection: 'Incomes',
+					collection: 'Payments',
 				},
 			},
 		]),
 		BalanceModule,
 		ScheduleModule.forRoot(),
 	],
-	controllers: [IncomeController],
-	providers: [IncomeService],
+	controllers: [PaymentController],
+	providers: [PaymentService],
 })
-export class IncomeModule {}
+export class PaymentModule {}

@@ -1,7 +1,7 @@
 import {IsString} from 'class-validator';
 import {ObjectId} from "mongoose";
 
-export class CloseDebtsToMeDto {
+export class CloseDebtsDto {
     @IsString()
     id: ObjectId;
 }

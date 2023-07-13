@@ -1,14 +1,11 @@
 import {prop} from '@typegoose/typegoose';
 import {Base, TimeStamps} from '@typegoose/typegoose/lib/defaultClasses';
 import {Types} from 'mongoose';
-import {IncomeModel} from 'src/income/income.model';
-import {MyDebtsModel} from '../myDebts/myDebts.model';
-import {DebtsToMeModel} from '../debtsToMe/debtsToMe.model';
+import {PaymentModel} from 'src/payment/payment.model';
+import {DebtsModel} from '../debts/debts.model';
 
 
-export interface UserModel extends Base {
-}
-
+export interface UserModel extends Base {}
 export class UserModel extends TimeStamps {
     @prop({unique: true, required: true})
     email: string;
@@ -29,15 +26,10 @@ export class UserModel extends TimeStamps {
     @prop({default: 0})
     balance: number;
 
-    @prop({type: () => Types.ObjectId, ref: () => IncomeModel})
-    incomes: IncomeModel[];
+    @prop({type: () => Types.ObjectId, ref: () => PaymentModel})
+    payments: PaymentModel[];
 
-    @prop({type: () => Types.ObjectId})
-    expenses: Types.ObjectId[];
+    @prop({type: () => Types.ObjectId, ref: () => DebtsModel})
+    debts: DebtsModel[];
 
-    @prop({type: () => Types.ObjectId, ref: () => MyDebtsModel})
-    myDebts: MyDebtsModel[];
-
-    @prop({type: () => Types.ObjectId, ref: () => DebtsToMeModel})
-    debtsToMe: DebtsToMeModel[];
 }
