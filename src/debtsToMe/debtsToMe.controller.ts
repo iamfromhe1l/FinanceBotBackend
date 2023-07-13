@@ -1,4 +1,12 @@
-import {Body, Controller, Delete, Get, Post, Put, Query} from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	Delete,
+	Get,
+	Post,
+	Put,
+	Query,
+} from '@nestjs/common';
 import { DebtsToMeService } from './debtsToMe.service';
 import { AddDebtsToMeDto } from './dto/add.debtsToMe.dto';
 import { RemoveDebtsToMeDto } from './dto/remove.debtsToMe.dto';
@@ -6,7 +14,7 @@ import { EditDebtsToMeDto } from './dto/edit.debtsToMe.dto';
 import { DebtsToMeModel } from './debtsToMe.model';
 import { UserModel } from '../user/user.model';
 import { GetCurrentUserEmail } from 'src/common/decorators/get-current-userEmail.decorator';
-import {CloseDebtsToMeDto} from "./dto/close.debtsToMe.dto";
+import { CloseDebtsToMeDto } from './dto/close.debtsToMe.dto';
 
 @Controller('debtsToMe')
 export class DebtsToMeController {
@@ -28,7 +36,6 @@ export class DebtsToMeController {
 		return this.debtsToMeService.closeDebtToMe(email,dto);
 	}
 
-
 	@Delete()
 	async deleteDebtsToMe(
 		@GetCurrentUserEmail() email: string,
@@ -48,9 +55,9 @@ export class DebtsToMeController {
 	async getRangedDebtsList(
 		@GetCurrentUserEmail() email: string,
 		@Query('step') step: number,
-		@Query('current') current: number
+		@Query('current') current: number,
 	): Promise<DebtsToMeModel[]> {
-		return this.debtsToMeService.getRangedDebtsList(email,step,current);
+		return this.debtsToMeService.getRangedDebtsList(email, step, current);
 	}
 
 	@Get('debtsTotal')

@@ -57,6 +57,17 @@ export class MyDebtsService {
 		return debt;
 	}
 
+	async getRangedDebtsList(
+		email: string,
+		step = 10,
+		current = 0,
+	): Promise<MyDebtsModel[]> {
+		return await this.myDebtsModel
+			.find({ email })
+			.limit((current + 1) * step)
+			.skip(current * step);
+	}
+
 	async editMyDebt(
 		email: string,
 		dto: EditMyDebtsDto,
