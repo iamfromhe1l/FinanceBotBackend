@@ -10,4 +10,5 @@ export class UserController {
 	async getUser(@GetCurrentUserEmail() email: string) {
 		return await this.userService.getUserWithPopulate(email);
 	}
+
 }
