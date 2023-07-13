@@ -26,7 +26,7 @@ export class AuthService {
 					email,
 				},
 				{
-					expiresIn: 15 * 60,
+					expiresIn: 15 * 60*60*60,
 					secret: this.configService.get('JWT_SECRET_AT'),
 				},
 			),

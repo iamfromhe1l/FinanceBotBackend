@@ -5,6 +5,7 @@ import {IncomeModel} from 'src/income/income.model';
 import {MyDebtsModel} from '../myDebts/myDebts.model';
 import {DebtsToMeModel} from '../debtsToMe/debtsToMe.model';
 
+
 export interface UserModel extends Base {
 }
 
@@ -21,6 +22,9 @@ export class UserModel extends TimeStamps {
 
     @prop({type: () => String})
     name: string;
+
+    @prop({default:{"RUS": 0}})
+    listBalance: Map<string,number>;
 
     @prop({default: 0})
     balance: number;

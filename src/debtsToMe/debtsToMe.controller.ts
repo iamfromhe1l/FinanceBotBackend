@@ -31,9 +31,9 @@ export class DebtsToMeController {
 	@Post('close')
 	async closeDebtToMe(
 		@GetCurrentUserEmail() email: string,
-		@Body() dto: CloseDebtsToMeDto,
-	): Promise<DebtsToMeModel | number> {
-		return this.debtsToMeService.closeDebtToMe(email, dto);
+		@Body() dto: CloseDebtsToMeDto
+	): Promise<void>{
+		return this.debtsToMeService.closeDebtToMe(email,dto);
 	}
 
 	@Delete()

@@ -94,9 +94,9 @@ export class DebtsToMeService {
 
 	async closeDebtToMe(email: string, dto: CloseDebtsToMeDto) {
 		const id = dto.id;
-		const debt = this.debtsToMeModel.findOne({ _id: id });
-		debt.isClosed = true;
-		debt.save();
-		return debt;
+		await this.debtsToMeModel.updateOne(
+			{ _id:id},
+			{  $set: { isClosed: true} },
+		);
 	}
 }

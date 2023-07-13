@@ -65,7 +65,7 @@ export class IncomeService {
 	async checkAllIncomes(): Promise<void> {
 		for await (const income of this.incomeModel.find()) {
 			if (income.period && income.nextDate < new Date()) {
-				this.balanceService.diffBalace(income.email, { diff: income.price });
+				this.balanceService.diffBalance(income.email, { diff: income.price });
 				income.nextDate = await this.updateNextDate(income.period);
 			}
 		}
