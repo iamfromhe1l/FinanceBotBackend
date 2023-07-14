@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {EditBalanceDto} from './dto/edit.balance.dto';
 import {DiffBalanceDto} from './dto/diff.balance.dto';
 import {UserService} from 'src/user/user.service';
@@ -10,6 +10,7 @@ import {BalanceModel} from "./balance.model";
 import {names} from "./names";
 import {Edit2BalanceDto} from "./dto/edit2.balance.dto";
 import {Diff2BalanceDto} from "./dto/diff2.balance.dto";
+import {balanceExceptions} from "../common/exception.constants";
 
 
 @Injectable()
@@ -49,16 +50,17 @@ export class BalanceService {
 
 
     // ------------------------------- New version ---------------------------------------
-
-    isCurrencyExist(newBase:string):  boolean{
-        return Object.keys(names).includes(newBase);
+    // TODO Проверять условие в интерсепторе для всех запросов где используются разные валюты
+    isCurrencyExist(newBase:string): void{
+        const flag =  Object.keys(names).includes(newBase);
+        if (!flag) throw new HttpException({
+            status: HttpStatus.UNPROCESSABLE_ENTITY,
+            error: balanceExceptions.CURRENCY_NOT_EXIST,
+        }, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
-    // При каждом обновлении курсов меняем базовую валюту на рубли в кроне.
-    // Если у пользователя выбрана другая базовая валюта, то при каждом запросе на баланс
-    // Происходит смена базовой валюты на нужную.
-    changeBaseCurrency(rates: Map<string,number>,newBase: string):Map<string,number> | number{
-        if (!this.isCurrencyExist(newBase)) return -1;
+    changeBaseCurrency(rates: Map<string,number>,newBase: string):Map<string,number>{
+        this.isCurrencyExist(newBase);
         const baseCurrency = rates.get(newBase);
         const newRates = new Map<string,number>;
         rates.forEach((value,key) => {
@@ -72,8 +74,9 @@ export class BalanceService {
     }
 
     async addCurrency(email: string,newBase: string): Promise<boolean>{
+        this.isCurrencyExist(newBase);
         const user = await this.userService.findUser(email);
-        if (!user.listBalance.has(newBase) && this.isCurrencyExist(newBase)){
+        if (!user.listBalance.has(newBase)){
             user.listBalance.set(newBase,0);
             await user.save();
             return true;
@@ -106,15 +109,13 @@ export class BalanceService {
     }
 
     async getCurrencies(newBase?:string): Promise<string>{
+        this.isCurrencyExist(newBase);
         const curr = await this.balanceModel.find({});
-        console.log(newBase);
-        if (newBase && this.isCurrencyExist(newBase)){
+        if (newBase){
             const data = this.changeBaseCurrency(curr[0].currencies,newBase) as Map<string,number>;
-            // console.log(await JSON.stringify(data));
             return JSON.stringify([...data]);
         }
         return JSON.stringify([...curr[0].currencies]);
-        // return curr[0].currencies;
     }
 
     async getBalance2(email: string): Promise<Map<string,number>>{
@@ -122,11 +123,13 @@ export class BalanceService {
         return user.listBalance;
     }
 
+
+    // TODO  Проверка в дтошке что новый баланс больше нуля
     async editBalance2(
         email: string,
         dto: Edit2BalanceDto,
-    ): Promise<number | Map<string,number>> {
-        if (this.isCurrencyExist(dto.currencyName)) return  -1;
+    ): Promise<Map<string,number>> {
+        this.isCurrencyExist(dto.currencyName);
         const user = await this.userService.findUser(email);
         user.listBalance.set(dto.currencyName,dto.editedBalance);
         await user.save();
@@ -136,10 +139,14 @@ export class BalanceService {
     async diffBalance2(
         email: string,
         dto: Diff2BalanceDto,
-    ): Promise<number | Map<string,number>> {
-        if (this.isCurrencyExist(dto.currencyName)) return  -1;
+    ): Promise<Map<string,number>> {
+        this.isCurrencyExist(dto.currencyName);
         const user = await this.userService.findUser(email);
         const newValue = user.listBalance.get(dto.currencyName) + dto.diff;
+        if (newValue < 0) throw new HttpException({
+            status: HttpStatus.UNPROCESSABLE_ENTITY,
+            error: balanceExceptions.LESS_THAN_ZERO,
+        }, HttpStatus.UNPROCESSABLE_ENTITY);
         user.listBalance.set(dto.currencyName,newValue);
         await user.save();
         return user.listBalance;

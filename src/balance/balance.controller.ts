@@ -65,7 +65,7 @@ export class BalanceController {
     async editBalance2(
     	@GetCurrentUserEmail() email: string,
     	@Body() dto: Edit2BalanceDto,
-    ): Promise<number | Map<string,number>>{
+    ): Promise<Map<string,number>>{
     	return await this.balanceService.editBalance2(email, dto);
     }
 
@@ -73,7 +73,7 @@ export class BalanceController {
     async diffBalance2(
     	@GetCurrentUserEmail() email: string,
     	@Body() dto: Diff2BalanceDto,
-    ): Promise<number | Map<string,number>> {
+    ): Promise<Map<string,number>> {
     	return await this.balanceService.diffBalance2(email, dto);
     }
 
