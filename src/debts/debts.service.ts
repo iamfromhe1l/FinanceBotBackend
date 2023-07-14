@@ -8,6 +8,8 @@ import { UserService } from '../user/user.service';
 import { EditDebtsDto } from './dto/edit.debts.dto';
 import { UserModel } from '../user/user.model';
 import { CloseDebtsDto } from './dto/close.debts.dto';
+import { ObjectId } from 'mongoose';
+import { debt } from './debts.type';
 
 @Injectable()
 export class DebtsService {
@@ -17,17 +19,25 @@ export class DebtsService {
 		private readonly userService: UserService,
 	) {}
 
-	async getDebt(email, name) {
+	async getDebt(email: string, name: string, debtType: debt) {
 		return await this.debtsModel
-			.findOne({ name: name, email: email })
+			.findOne({ name, email, type: debtType })
 			.exec();
+	}
+
+	async getDebtById(id: ObjectId) {
+		try {
+			return await this.debtsModel.findById(id);
+		} catch {
+			return null;
+		}
 	}
 
 	async addDebt(
 		email: string,
 		dto: AddDebtsDto,
 	): Promise<DebtsModel | UserModel> {
-		const debt = await this.getDebt(email, dto.name);
+		const debt = await this.getDebt(email, dto.name, dto.debtType);
 		if (debt) {
 			debt.amount += dto.amount;
 			await debt.save();
@@ -38,65 +48,88 @@ export class DebtsService {
 			name: dto.name,
 			amount: dto.amount,
 			debtDate: Date.now(),
+			type: dto.debtType,
 		});
-		await newDebt.save();
 		const user = await this.userService.findUser(email);
 		user.debts = [...user.debts, newDebt.id];
 		await user.save();
-		return user;
+		return await newDebt.save();
 	}
 
 	async deleteDebt(
 		email: string,
 		dto: RemoveDebtsDto,
 	): Promise<DebtsModel | number> {
-		const debt = await this.getDebt(email, dto.name);
+		const debt = await this.getDebt(email, dto.name, dto.debtType);
 		if (!debt) return -1;
 		const user = await this.userService.findUser(email);
 		user.debts.splice(user.debts.indexOf(debt.id));
 		await user.save();
-		await debt.deleteOne();
-		await debt.save;
-		return debt;
+		return await debt.deleteOne();
+	}
+
+	async deleteDebtById(
+		email: string,
+		id: ObjectId,
+	): Promise<DebtsModel | number> {
+		const debt = await this.getDebtById(id);
+		if (!debt || debt.email != email) return -1;
+		const user = await this.userService.findUser(email);
+		user.debts.splice(user.debts.indexOf(debt.id));
+		await user.save();
+		return await debt.deleteOne();
 	}
 
 	async editDebt(
 		email: string,
 		dto: EditDebtsDto,
 	): Promise<DebtsModel | number> {
-		const debt = await this.getDebt(email, dto.name);
-		if (!debt) return -1;
+		const debt = await this.getDebt(email, dto.name, dto.debtType);
+		if (!debt || !dto.editedAmount) return -1;
 		debt.amount = dto.editedAmount;
-		await debt.save();
-		return debt;
+		return await debt.save();
 	}
 
-	async getDebtsList(email: string): Promise<DebtsModel[]> {
+	async editDebtById(
+		email: string,
+		id: ObjectId,
+		editedAmount: number,
+	): Promise<DebtsModel | number> {
+		const debt = await this.getDebtById(id);
+		if (!debt || debt.email != email || !editedAmount) return -1;
+		debt.amount = editedAmount;
+		return await debt.save();
+	}
+
+	async getDebtsList(email: string, debtType: debt): Promise<DebtsModel[]> {
 		const user = await this.userService.getUserWithPopulate(email);
-		return user['debtsToMe'];
+		return user.debts.filter((el) => el.type == debtType);
 	}
 
 	async getRangedDebtsList(
 		email: string,
+		deptType: debt,
 		step = 10,
 		current = 0,
 	): Promise<DebtsModel[]> {
 		return this.debtsModel
-			.find({ email })
+			.find({ email, type: deptType })
 			.limit((current + 1) * step)
 			.skip(current * step);
 	}
 
-	async getTotalDebts(email: string): Promise<number> {
-		const debtsList = await this.getDebtsList(email);
+	async getTotalDebts(email: string, debtType: debt): Promise<number> {
+		const debtsList = await this.getDebtsList(email, debtType);
 		return debtsList.map((el) => el.amount).reduce((acc, el) => acc + el, 0);
 	}
 
-	async closeDebt(email: string, dto: CloseDebtsDto) {
-		const id = dto.id;
-		await this.debtsModel.updateOne(
-			{ _id:id},
-			{  $set: { isClosed: true} },
-		);
+	async closeDebt(
+		email: string,
+		dto: CloseDebtsDto,
+	): Promise<DebtsModel | number> {
+		const debt = await this.getDebtById(dto.id);
+		if (!debt || debt.email != email) return -1;
+		debt.isClosed = true;
+		return debt.save();
 	}
 }

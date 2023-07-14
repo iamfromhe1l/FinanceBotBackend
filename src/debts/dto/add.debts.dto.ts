@@ -1,4 +1,5 @@
 import { IsNumber, IsString } from 'class-validator';
+import { debt } from '../debts.type';
 
 export class AddDebtsDto {
 	@IsString()
@@ -6,4 +7,6 @@ export class AddDebtsDto {
 
 	@IsNumber()
 	amount: number;
+
+	debtType: debt;
 }

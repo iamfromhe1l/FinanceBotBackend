@@ -3,6 +3,7 @@ import {
 	Controller,
 	Delete,
 	Get,
+	Param,
 	Post,
 	Put,
 	Query,
@@ -15,6 +16,8 @@ import { DebtsModel } from './debts.model';
 import { UserModel } from '../user/user.model';
 import { GetCurrentUserEmail } from 'src/common/decorators/get-current-userEmail.decorator';
 import { CloseDebtsDto } from './dto/close.debts.dto';
+import { debt } from './debts.type';
+import { ObjectId } from 'mongoose';
 
 @Controller('debts')
 export class DebtsController {
@@ -31,9 +34,9 @@ export class DebtsController {
 	@Post('close')
 	async closeDebt(
 		@GetCurrentUserEmail() email: string,
-		@Body() dto: CloseDebtsDto
-	): Promise<void>{
-		return this.debtsService.closeDebt(email,dto);
+		@Body() dto: CloseDebtsDto,
+	): Promise<DebtsModel | number> {
+		return this.debtsService.closeDebt(email, dto);
 	}
 
 	@Delete()
@@ -44,11 +47,20 @@ export class DebtsController {
 		return this.debtsService.deleteDebt(email, dto);
 	}
 
+	@Delete(':id')
+	async deleteDebtById(
+		@GetCurrentUserEmail() email: string,
+		@Param('id') id: ObjectId,
+	) {
+		return this.debtsService.deleteDebtById(email, id);
+	}
+
 	@Get('debtsList')
 	async getDebtsList(
 		@GetCurrentUserEmail() email: string,
+		@Body() body: { debtType: debt },
 	): Promise<DebtsModel[]> {
-		return this.debtsService.getDebtsList(email);
+		return this.debtsService.getDebtsList(email, body.debtType);
 	}
 
 	@Get('rangedDebtsList')
@@ -56,13 +68,22 @@ export class DebtsController {
 		@GetCurrentUserEmail() email: string,
 		@Query('step') step: number,
 		@Query('current') current: number,
+		@Body() body: { debtType: debt },
 	): Promise<DebtsModel[]> {
-		return this.debtsService.getRangedDebtsList(email, step, current);
+		return this.debtsService.getRangedDebtsList(
+			email,
+			body.debtType,
+			step,
+			current,
+		);
 	}
 
 	@Get('debtsTotal')
-	async getTotalDebts(@GetCurrentUserEmail() email: string): Promise<number> {
-		return this.debtsService.getTotalDebts(email);
+	async getTotalDebts(
+		@GetCurrentUserEmail() email: string,
+		@Body() body: { debtType: debt },
+	): Promise<number> {
+		return this.debtsService.getTotalDebts(email, body.debtType);
 	}
 
 	@Put()
@@ -71,5 +92,14 @@ export class DebtsController {
 		@Body() dto: EditDebtsDto,
 	): Promise<DebtsModel | number> {
 		return this.debtsService.editDebt(email, dto);
+	}
+
+	@Put(':id')
+	async editDebtById(
+		@GetCurrentUserEmail() email: string,
+		@Body() body: { editedAmount: number },
+		@Param('id') id: ObjectId,
+	): Promise<DebtsModel | number> {
+		return this.debtsService.editDebtById(email, id, body.editedAmount);
 	}
 }
