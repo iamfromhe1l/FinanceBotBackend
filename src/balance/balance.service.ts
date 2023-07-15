@@ -10,7 +10,8 @@ import {BalanceModel} from "./balance.model";
 import {names} from "./names";
 import {Edit2BalanceDto} from "./dto/edit2.balance.dto";
 import {Diff2BalanceDto} from "./dto/diff2.balance.dto";
-import {balanceExceptions} from "../common/exception.constants";
+import {balanceExceptions} from "../common/exceptions/exception.constants";
+import {ServiceException} from "../common/exceptions/serviceException";
 
 
 @Injectable()
@@ -50,13 +51,10 @@ export class BalanceService {
 
 
     // ------------------------------- New version ---------------------------------------
-    // TODO Проверять условие в интерсепторе для всех запросов где используются разные валюты
+    // TODO Вместо проверки в функциях, проверять условие в интерсепторе для всех запросов где используются разные валюты
     isCurrencyExist(newBase:string): void{
         const flag =  Object.keys(names).includes(newBase);
-        if (!flag) throw new HttpException({
-            status: HttpStatus.UNPROCESSABLE_ENTITY,
-            error: balanceExceptions.CURRENCY_NOT_EXIST,
-        }, HttpStatus.UNPROCESSABLE_ENTITY);
+        if (!flag) throw new ServiceException(balanceExceptions.CURRENCY_NOT_EXIST);
     }
 
     changeBaseCurrency(rates: Map<string,number>,newBase: string):Map<string,number>{
@@ -143,10 +141,7 @@ export class BalanceService {
         this.isCurrencyExist(dto.currencyName);
         const user = await this.userService.findUser(email);
         const newValue = user.listBalance.get(dto.currencyName) + dto.diff;
-        if (newValue < 0) throw new HttpException({
-            status: HttpStatus.UNPROCESSABLE_ENTITY,
-            error: balanceExceptions.LESS_THAN_ZERO,
-        }, HttpStatus.UNPROCESSABLE_ENTITY);
+        if (newValue < 0) throw new ServiceException(balanceExceptions.LESS_THAN_ZERO);
         user.listBalance.set(dto.currencyName,newValue);
         await user.save();
         return user.listBalance;
