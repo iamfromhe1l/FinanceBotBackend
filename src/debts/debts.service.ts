@@ -6,10 +6,11 @@ import { AddDebtsDto } from './dto/add.debts.dto';
 import { RemoveDebtsDto } from './dto/remove.debts.dto';
 import { UserService } from '../user/user.service';
 import { EditDebtsDto } from './dto/edit.debts.dto';
-import { UserModel } from '../user/user.model';
 import { CloseDebtsDto } from './dto/close.debts.dto';
 import { ObjectId } from 'mongoose';
 import { debt } from './debts.type';
+import {debtsExceptions} from "../common/exceptions/exception.constants";
+import {ServiceException} from "../common/exceptions/serviceException";
 
 @Injectable()
 export class DebtsService {
@@ -19,28 +20,22 @@ export class DebtsService {
 		private readonly userService: UserService,
 	) {}
 
-	async getDebt(email: string, name: string, debtType: debt) {
-		return await this.debtsModel
+	async getDebt(email: string, name: string, debtType: debt){
+		return this.debtsModel
 			.findOne({ name, email, type: debtType })
 			.exec();
 	}
 
 	async getDebtById(id: ObjectId) {
-		try {
-			return await this.debtsModel.findById(id);
-		} catch {
-			return null;
-		}
+		return this.debtsModel.findById(id);
 	}
 
-	async addDebt(
-		email: string,
-		dto: AddDebtsDto,
-	): Promise<DebtsModel | UserModel> {
+	async addDebt(email: string, dto: AddDebtsDto,): Promise<DebtsModel> {
 		const debt = await this.getDebt(email, dto.name, dto.debtType);
 		if (debt) {
-			debt.amount += dto.amount;
-			await debt.save();
+			const amount = debt.listDebts.get(dto.currency);
+			debt.listDebts.set(dto.currency,amount + dto.amount);
+			await debt.save;
 			return debt;
 		}
 		const newDebt = new this.debtsModel({
@@ -49,6 +44,8 @@ export class DebtsService {
 			amount: dto.amount,
 			debtDate: Date.now(),
 			type: dto.debtType,
+			editBalance: dto.editBalance,
+			currency: dto.currency
 		});
 		const user = await this.userService.findUser(email);
 		user.debts = [...user.debts, newDebt.id];
@@ -56,18 +53,20 @@ export class DebtsService {
 		return await newDebt.save();
 	}
 
-	async deleteDebt(
-		email: string,
-		dto: RemoveDebtsDto,
-	): Promise<DebtsModel | number> {
+	
+
+	// async checkExistance(){
+	//
+	// }
+
+	async deleteDebt(email: string, dto: RemoveDebtsDto): Promise<DebtsModel> {
 		const debt = await this.getDebt(email, dto.name, dto.debtType);
-		if (!debt) return -1;
+		if (!debt) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
 		const user = await this.userService.findUser(email);
 		user.debts.splice(user.debts.indexOf(debt.id));
 		await user.save();
 		return await debt.deleteOne();
 	}
-
 	async deleteDebtById(
 		email: string,
 		id: ObjectId,
@@ -79,6 +78,8 @@ export class DebtsService {
 		await user.save();
 		return await debt.deleteOne();
 	}
+
+
 
 	async editDebt(
 		email: string,
@@ -132,4 +133,5 @@ export class DebtsService {
 		debt.isClosed = true;
 		return debt.save();
 	}
+	
 }
