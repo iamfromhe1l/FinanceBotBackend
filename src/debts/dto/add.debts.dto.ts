@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import {IsBoolean, IsNumber, IsString} from 'class-validator';
 import { debt } from '../debts.type';
 import {availableCurrency} from "../../balance/names";
 
@@ -13,5 +13,9 @@ export class AddDebtsDto {
 
 	debtType: debt;
 
+	@IsBoolean()
 	editBalance: boolean;
+
+	@IsBoolean()
+	isFixed: boolean;
 }

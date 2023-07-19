@@ -5,6 +5,10 @@ import {availableCurrency} from "../balance/names";
 
 export interface DebtsModel extends Base {}
 export class DebtsModel extends TimeStamps {
+
+	// Мб все долги одного пользователя хранить в одном документе, не разделяя на тип долга
+	// А в поле debtsList будут объекты у которых есть поля "debtType" "fixedCurrency" и тд
+
 	@prop({ type: () => String, required: true })
 	email: string;
 
@@ -25,4 +29,13 @@ export class DebtsModel extends TimeStamps {
 
 	@prop({ required: true })
 	type: debt;
+
+
+	// isFixed==true  => зафиксирована валюта, курс меняется
+	// isFixed==false => зафиксирован курс
+	isFixed: boolean;
+
+	//Ставить только если isFixed==false
+	fixedCurrencies?: Map<availableCurrency,number>;
+
 }

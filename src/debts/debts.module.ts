@@ -17,7 +17,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 				},
 			},
 		]),
-		ScheduleModule.forRoot(),
+		ScheduleModule.forRoot()
 	],
 	controllers: [DebtsController],
 	providers: [DebtsService],

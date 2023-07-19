@@ -1,4 +1,5 @@
 export type availableCurrency = keyof typeof names;
+export type namesType = typeof names;
 
 export const names = {
   "AED": "United Arab Emirates Dirham",

@@ -50,13 +50,13 @@ export class PaymentController {
 		return this.incomeService.getRangedPaymentsList(email, step, current);
 	}
 
-	@Put(':title')
-	async stopPaymentSchedule(
-		@GetCurrentUserEmail() email: string,
-		@Param('title') title: string,
-	) {
-		return this.incomeService.stopPaymentSchedule(email, title);
-	}
+	// @Put(':title')
+	// async stopPaymentSchedule(
+	// 	@GetCurrentUserEmail() email: string,
+	// 	@Param('title') title: string,
+	// ) {
+	// 	return this.incomeService.stopPaymentSchedule(email, title);
+	// }
 
 	@Delete(':title')
 	async deletePayment(

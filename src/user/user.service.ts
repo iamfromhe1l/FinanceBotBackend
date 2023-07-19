@@ -12,7 +12,7 @@ export class UserService {
 	) {}
 
 	async findUser(email: string) {
-		return await this.userModel.findOne({ email }).exec();
+		return await this.userModel.findOne({ email }).populate("listBalance").exec();
 	}
 
 	async getUserWithPopulate(email: string) {

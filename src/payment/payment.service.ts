@@ -16,10 +16,10 @@ export class PaymentService {
 		private readonly userService: UserService,
 	) {}
 
-	@Cron(CronExpression.EVERY_DAY_AT_10AM)
-	async handleCron(): Promise<void> {
-		await this.checkAllPayments();
-	}
+	// @Cron(CronExpression.EVERY_DAY_AT_10AM)
+	// async handleCron(): Promise<void> {
+	// 	await this.checkAllPayments();
+	// }
 
 	async getPaymentById(id) {
 		return this.paymentModel.find({ id });
@@ -63,14 +63,15 @@ export class PaymentService {
 		return newIncome.save();
 	}
 
-	async checkAllPayments(): Promise<void> {
-		for await (const income of this.paymentModel.find()) {
-			if (income.period && income.nextDate < new Date()) {
-				await this.balanceService.diffBalance(income.email, { diff: income.price });
-				income.nextDate = await this.updateNextDate(income.period);
-			}
-		}
-	}
+	// Использовалась старая версия diffBalance
+	// async checkAllPayments(): Promise<void> {
+	// 	for await (const income of this.paymentModel.find()) {
+	// 		if (income.period && income.nextDate < new Date()) {
+	// 			await this.balanceService.diffBalance(income.email, { diff: income.price });
+	// 			income.nextDate = await this.updateNextDate(income.period);
+	// 		}
+	// 	}
+	// }
 
 	async updateNextDate(period: number): Promise<Date> {
 		const currentDate: Date = new Date();
@@ -78,20 +79,20 @@ export class PaymentService {
 		return currentDate;
 	}
 
-	async stopPaymentSchedule(email: string, title: string): Promise<void> {
-		const income = await this.paymentModel.findOne({
-			email: email,
-			title: title,
-		});
-		if (!income.nextDate) {
-			return;
-		}
-		await this.checkAllPayments();
-		await this.paymentModel.updateOne(
-			{ email: email, title: title },
-			{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now() } },
-		);
-	}
+	// async stopPaymentSchedule(email: string, title: string): Promise<void> {
+	// 	const income = await this.paymentModel.findOne({
+	// 		email: email,
+	// 		title: title,
+	// 	});
+	// 	if (!income.nextDate) {
+	// 		return;
+	// 	}
+	// 	await this.checkAllPayments();
+	// 	await this.paymentModel.updateOne(
+	// 		{ email: email, title: title },
+	// 		{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now() } },
+	// 	);
+	// }
 
 	async deletePayment(
 		email: string,
