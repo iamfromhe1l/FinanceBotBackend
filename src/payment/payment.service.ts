@@ -6,6 +6,8 @@ import { ReturnModelType } from '@typegoose/typegoose';
 import { BalanceService } from 'src/balance/balance.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UserService } from 'src/user/user.service';
+import { ObjectId } from 'mongoose';
+import { PaymentsListDto } from './dto/rangedPayments.dto';
 
 @Injectable()
 export class PaymentService {
@@ -21,53 +23,77 @@ export class PaymentService {
 		await this.checkAllPayments();
 	}
 
-	async getPaymentById(id) {
-		return this.paymentModel.find({ id });
+	async getPaymentById(email: string, id: ObjectId) {
+		try {
+			const payment = await this.paymentModel.findById(id);
+			return payment.email == email ? payment : null;
+		} catch {
+			return;
+		}
 	}
 
 	async getPaymentsList(email: string) {
-		return this.paymentModel.find({ email });
+		return await this.paymentModel.find({ email });
 	}
 
 	async getRangedPaymentsList(email: string, step = 10, current = 0) {
-		return this.paymentModel
+		return await this.paymentModel
 			.find({ email })
 			.limit((current + 1) * step)
 			.skip(current * step);
 	}
+
+	async getPaymentsListByDto(
+		email: string,
+		dto: PaymentsListDto,
+	): Promise<PaymentModel[]> {
+		const payments = await this.paymentModel.find({ email, type: dto.type });
+		return dto.periodic
+			? payments.filter((el: PaymentModel) => el.nextDate || el.lastDate)
+			: payments.filter((el: PaymentModel) => !el.nextDate && !el.lastDate);
+	}
+
 	async createPayment(email: string, dto: PaymentDto) {
-		let newIncome;
-		if (dto.period != undefined) {
-			newIncome = new this.paymentModel({
+		let newPayment;
+		if (dto.period) {
+			newPayment = new this.paymentModel({
 				email,
 				title: dto.title,
 				price: dto.price,
 				category: dto.category,
 				period: dto.period,
 				nextDate: await this.updateNextDate(dto.period),
-				incomeDate: Date.now(),
+				paymentDate: new Date(),
+				type: dto.type,
 			});
 		} else {
-			newIncome = new this.paymentModel({
+			newPayment = new this.paymentModel({
 				email,
 				title: dto.title,
 				price: dto.price,
 				category: dto.category,
-				incomeDate: Date.now(),
+				paymentDate: new Date(),
+				type: dto.type,
 			});
 		}
 
 		const user = await this.userService.findUser(email);
-		user.payments = [...user.payments, newIncome.id];
+		user.payments = [...user.payments, newPayment.id];
 		await user.save();
-		return newIncome.save();
+		return newPayment.save();
 	}
 
 	async checkAllPayments(): Promise<void> {
-		for await (const income of this.paymentModel.find()) {
-			if (income.period && income.nextDate < new Date()) {
-				await this.balanceService.diffBalance(income.email, { diff: income.price });
-				income.nextDate = await this.updateNextDate(income.period);
+		for await (const payment of this.paymentModel.find()) {
+			if (
+				payment.period &&
+				!payment.lastDate &&
+				payment.nextDate < new Date()
+			) {
+				await this.balanceService.diffBalance(payment.email, {
+					diff: payment.type == 'income' ? payment.price : -payment.price,
+				});
+				payment.nextDate = await this.updateNextDate(payment.period);
 			}
 		}
 	}
@@ -79,34 +105,37 @@ export class PaymentService {
 	}
 
 	async stopPaymentSchedule(email: string, title: string): Promise<void> {
-		const income = await this.paymentModel.findOne({
-			email: email,
-			title: title,
-		});
-		if (!income.nextDate) {
+		const payment = await this.paymentModel.findOne({ email, title });
+		if (payment.lastDate) {
 			return;
 		}
-		await this.checkAllPayments();
-		await this.paymentModel.updateOne(
-			{ email: email, title: title },
-			{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now() } },
-		);
+		payment.lastDate = new Date();
+		payment.set('nextDate', undefined);
+	}
+
+	async stopPaymentScheduleById(
+		email: string,
+		id: ObjectId,
+	): Promise<PaymentModel | number> {
+		const payment = await this.getPaymentById(email, id);
+		if (!payment || payment.lastDate) return -1;
+		payment.lastDate = new Date();
+		payment.set('nextDate', undefined);
+		return payment.save();
 	}
 
 	async deletePayment(
 		email: string,
 		title: string,
 	): Promise<PaymentModel | number> {
-		const income = await this.paymentModel.findOne({
+		const payment = await this.paymentModel.findOne({
 			email: email,
 			title: title,
 		});
-		if (!income) return -1;
+		if (!payment) return -1;
 		const user = await this.userService.findUser(email);
-		user.payments.splice(user.payments.indexOf(income.id));
+		user.payments.splice(user.payments.indexOf(payment.id));
 		await user.save();
-		await income.deleteOne();
-		await income.save();
-		return income;
+		return payment.deleteOne();
 	}
 }

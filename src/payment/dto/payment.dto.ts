@@ -1,11 +1,13 @@
 import {
+	IsBoolean,
 	IsNotEmpty,
-	IsNumber, IsOptional,
+	IsNumber,
+	IsOptional,
 	IsString,
 	Max,
 	MaxLength,
 } from 'class-validator';
-import {payment} from "../payment.type";
+import { payment } from '../payment.type';
 
 export class PaymentDto {
 	@MaxLength(20)
