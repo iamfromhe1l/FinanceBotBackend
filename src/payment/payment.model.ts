@@ -1,6 +1,6 @@
 import { prop } from '@typegoose/typegoose';
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
-import {payment} from "./payment.type";
+import { payment } from './payment.type';
 
 export interface PaymentModel extends Base {}
 export class PaymentModel extends TimeStamps {
@@ -20,16 +20,16 @@ export class PaymentModel extends TimeStamps {
 	@prop({ type: () => Number })
 	period?: number;
 
+	@prop({ type: () => String })
+	currencyName: string;
+
 	// Next payment Dat
 	@prop({ type: () => Date })
 	nextDate?: Date;
 
-	@prop({ type: () => Date, required: true })
-	paymentDate: Date;
-
 	@prop({ type: () => Date })
 	lastDate?: Date;
 
-	@prop({required: true})
+	@prop({ required: true })
 	type: payment;
 }

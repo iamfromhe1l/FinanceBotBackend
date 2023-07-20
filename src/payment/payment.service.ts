@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PaymentDto } from './dto/payment.dto';
 import { InjectModel } from 'nestjs-typegoose';
 import { PaymentModel } from './payment.model';
@@ -6,6 +6,13 @@ import { ReturnModelType } from '@typegoose/typegoose';
 import { BalanceService } from 'src/balance/balance.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UserService } from 'src/user/user.service';
+import { ObjectId } from 'mongoose';
+import { PaymentsListDto } from './dto/rangedPayments.dto';
+import { names } from 'src/balance/names';
+import {
+	balanceExceptions,
+	paymentExceptions,
+} from 'src/common/exception.constants';
 
 @Injectable()
 export class PaymentService {
@@ -21,92 +28,194 @@ export class PaymentService {
 		await this.checkAllPayments();
 	}
 
-	async getPaymentById(id) {
-		return this.paymentModel.find({ id });
+	async getPaymentById(email: string, id: ObjectId) {
+		try {
+			const payment = await this.paymentModel.findById(id);
+			if (payment.email == email) return payment;
+			throw new HttpException(
+				{
+					status: HttpStatus.UNAUTHORIZED,
+					error: paymentExceptions.EMAIL_AUTHORIZATION_ERROR,
+				},
+				HttpStatus.UNAUTHORIZED,
+			);
+		} catch {
+			throw new HttpException(
+				{
+					status: HttpStatus.UNPROCESSABLE_ENTITY,
+					error: paymentExceptions.PAYMENT_NOT_EXIST,
+				},
+				HttpStatus.UNPROCESSABLE_ENTITY,
+			);
+		}
 	}
 
-	async getPaymentsList(email: string) {
-		return this.paymentModel.find({ email });
+	async getPaymentsList(email: string): Promise<PaymentModel[]> {
+		return await this.paymentModel.find({ email });
 	}
 
-	async getRangedPaymentsList(email: string, step = 10, current = 0) {
-		return this.paymentModel
+	async getRangedPaymentsList(
+		email: string,
+		step = 10,
+		current = 0,
+	): Promise<PaymentModel[]> {
+		return await this.paymentModel
 			.find({ email })
 			.limit((current + 1) * step)
 			.skip(current * step);
 	}
+
+	async getRangedPaymentsListByDto(
+		email: string,
+		dto: PaymentsListDto,
+		step = 10,
+		current = 0,
+	): Promise<PaymentModel[]> {
+		return dto.periodic
+			? await this.paymentModel
+					.find({
+						email,
+						type: dto.type,
+						$and: [{ lastDate: undefined }, { nextDate: undefined }],
+					})
+					.limit((current + 1) * step)
+					.slip(current * step)
+			: await this.paymentModel
+					.find({
+						email,
+						type: dto.type,
+						$or: [
+							{ lastDate: { $exists: true } },
+							{ nextDate: { $exists: true } },
+						],
+					})
+					.limit((current + 1) * step)
+					.slip(current * step);
+	}
+
+	async getPaymentsListByDto(
+		email: string,
+		dto: PaymentsListDto,
+	): Promise<PaymentModel[]> {
+		return dto.periodic
+			? await this.paymentModel.find({
+					email,
+					type: dto.type,
+					$and: [{ lastDate: undefined }, { nextDate: undefined }],
+			  })
+			: await this.paymentModel.find({
+					email,
+					type: dto.type,
+					$or: [
+						{ lastDate: { $exists: true } },
+						{ nextDate: { $exists: true } },
+					],
+			  });
+	}
+
 	async createPayment(email: string, dto: PaymentDto) {
-		let newIncome;
-		if (dto.period != undefined) {
-			newIncome = new this.paymentModel({
+		if (!Object.keys(names).includes(dto.currencyName))
+			throw new HttpException(
+				{
+					status: HttpStatus.UNPROCESSABLE_ENTITY,
+					error: balanceExceptions.CURRENCY_NOT_EXIST,
+				},
+				HttpStatus.UNPROCESSABLE_ENTITY,
+			);
+		const user = await this.userService.findUser(email);
+		if (!dto.period)
+			this.balanceService.diffBalance2(email, {
+				diff: dto.type == 'income' ? dto.price : -dto.price,
+				currencyName: dto.currencyName,
+			});
+		let newPayment;
+		if (dto.period) {
+			newPayment = new this.paymentModel({
 				email,
 				title: dto.title,
 				price: dto.price,
 				category: dto.category,
 				period: dto.period,
-				nextDate: await this.updateNextDate(dto.period),
-				incomeDate: Date.now(),
+				nextDate: await this.updateNextDate(
+					dto.period,
+					dto.startDay ? dto.startDay : new Date(),
+				),
+				currencyName: dto.currencyName,
+				type: dto.type,
 			});
 		} else {
-			newIncome = new this.paymentModel({
+			newPayment = new this.paymentModel({
 				email,
 				title: dto.title,
 				price: dto.price,
+				currencyName: dto.currencyName,
 				category: dto.category,
-				incomeDate: Date.now(),
+				type: dto.type,
 			});
 		}
 
-		const user = await this.userService.findUser(email);
-		user.payments = [...user.payments, newIncome.id];
+		user.payments = [...user.payments, newPayment.id];
 		await user.save();
-		return newIncome.save();
+		return newPayment.save();
 	}
 
 	async checkAllPayments(): Promise<void> {
-		for await (const income of this.paymentModel.find()) {
-			if (income.period && income.nextDate < new Date()) {
-				await this.balanceService.diffBalance(income.email, { diff: income.price });
-				income.nextDate = await this.updateNextDate(income.period);
+		for await (const payment of this.paymentModel.find()) {
+			if (
+				payment.period &&
+				!payment.lastDate &&
+				payment.nextDate < new Date()
+			) {
+				await this.balanceService.diffBalance2(payment.email, {
+					diff: payment.type == 'income' ? payment.price : -payment.price,
+					currencyName: payment.currencyName,
+				});
+				payment.nextDate = await this.updateNextDate(
+					payment.period,
+					payment.nextDate,
+				);
 			}
 		}
 	}
 
-	async updateNextDate(period: number): Promise<Date> {
-		const currentDate: Date = new Date();
+	async updateNextDate(period: number, startDate: Date): Promise<Date> {
+		const currentDate: Date = startDate;
 		currentDate.setDate(currentDate.getDate() + period);
 		return currentDate;
 	}
 
 	async stopPaymentSchedule(email: string, title: string): Promise<void> {
-		const income = await this.paymentModel.findOne({
-			email: email,
-			title: title,
-		});
-		if (!income.nextDate) {
+		const payment = await this.paymentModel.findOne({ email, title });
+		if (payment.lastDate) {
 			return;
 		}
-		await this.checkAllPayments();
-		await this.paymentModel.updateOne(
-			{ email: email, title: title },
-			{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now() } },
-		);
+		payment.lastDate = new Date();
+		payment.set('nextDate', undefined);
+	}
+
+	async stopPaymentScheduleById(
+		email: string,
+		id: ObjectId,
+	): Promise<PaymentModel | number> {
+		const payment = await this.getPaymentById(email, id);
+		if (!payment || payment.lastDate) return -1;
+		payment.lastDate = new Date();
+		payment.set('nextDate', undefined);
+		return payment.save();
 	}
 
 	async deletePayment(
 		email: string,
 		title: string,
 	): Promise<PaymentModel | number> {
-		const income = await this.paymentModel.findOne({
+		const payment = await this.paymentModel.findOne({
 			email: email,
 			title: title,
 		});
-		if (!income) return -1;
+		if (!payment) return -1;
 		const user = await this.userService.findUser(email);
-		user.payments.splice(user.payments.indexOf(income.id));
+		user.payments.splice(user.payments.indexOf(payment.id));
 		await user.save();
-		await income.deleteOne();
-		await income.save();
-		return income;
+		return payment.deleteOne();
 	}
 }
