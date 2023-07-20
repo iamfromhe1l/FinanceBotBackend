@@ -13,7 +13,6 @@ import {
 	balanceExceptions,
 	paymentExceptions,
 } from 'src/common/exception.constants';
-import { Diff2BalanceDto } from 'src/balance/dto/diff2.balance.dto';
 
 @Injectable()
 export class PaymentService {
@@ -51,25 +50,67 @@ export class PaymentService {
 		}
 	}
 
-	async getPaymentsList(email: string) {
+	async getPaymentsList(email: string): Promise<PaymentModel[]> {
 		return await this.paymentModel.find({ email });
 	}
 
-	async getRangedPaymentsList(email: string, step = 10, current = 0) {
+	async getRangedPaymentsList(
+		email: string,
+		step = 10,
+		current = 0,
+	): Promise<PaymentModel[]> {
 		return await this.paymentModel
 			.find({ email })
 			.limit((current + 1) * step)
 			.skip(current * step);
 	}
 
+	async getRangedPaymentsListByDto(
+		email: string,
+		dto: PaymentsListDto,
+		step = 10,
+		current = 0,
+	): Promise<PaymentModel[]> {
+		return dto.periodic
+			? await this.paymentModel
+					.find({
+						email,
+						type: dto.type,
+						$and: [{ lastDate: undefined }, { nextDate: undefined }],
+					})
+					.limit((current + 1) * step)
+					.slip(current * step)
+			: await this.paymentModel
+					.find({
+						email,
+						type: dto.type,
+						$or: [
+							{ lastDate: { $exists: true } },
+							{ nextDate: { $exists: true } },
+						],
+					})
+					.limit((current + 1) * step)
+					.slip(current * step);
+	}
+
 	async getPaymentsListByDto(
 		email: string,
 		dto: PaymentsListDto,
 	): Promise<PaymentModel[]> {
-		const payments = await this.paymentModel.find({ email, type: dto.type });
 		return dto.periodic
-			? payments.filter((el: PaymentModel) => el.nextDate || el.lastDate)
-			: payments.filter((el: PaymentModel) => !el.nextDate && !el.lastDate);
+			? await this.paymentModel.find({
+					email,
+					type: dto.type,
+					$and: [{ lastDate: undefined }, { nextDate: undefined }],
+			  })
+			: await this.paymentModel.find({
+					email,
+					type: dto.type,
+					$or: [
+						{ lastDate: { $exists: true } },
+						{ nextDate: { $exists: true } },
+					],
+			  });
 	}
 
 	async createPayment(email: string, dto: PaymentDto) {

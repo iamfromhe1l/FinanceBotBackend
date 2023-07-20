@@ -28,10 +28,10 @@ export class PaymentController {
 	}
 
 	@Get('list')
-	async getPaymentsList(
+	async getAllPaymentsList(
 		@GetCurrentUserEmail() email: string,
 	): Promise<PaymentModel[]> {
-		return await this.getPaymentsList(email);
+		return await this.paymentService.getPaymentsList(email);
 	}
 
 	@Get('listByDto')
@@ -58,6 +58,21 @@ export class PaymentController {
 	): Promise<PaymentModel[]> {
 		return await this.paymentService.getRangedPaymentsList(
 			email,
+			step,
+			current,
+		);
+	}
+
+	@Get('rangedByDto')
+	async getRangedPaymentsListByDto(
+		@GetCurrentUserEmail() email: string,
+		@Query('step') step: number,
+		@Query('current') current: number,
+		@Body() dto: PaymentsListDto,
+	): Promise<PaymentModel[]> {
+		return await this.paymentService.getRangedPaymentsListByDto(
+			email,
+			dto,
 			step,
 			current,
 		);

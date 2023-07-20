@@ -13,9 +13,6 @@ export class PaymentModel extends TimeStamps {
 	@prop({ type: () => Number, required: true })
 	price: number;
 
-	@prop({ type: () => String, required: true })
-	currencyName: string;
-
 	@prop({ type: () => String, default: 'main' })
 	category: string;
 
@@ -23,12 +20,12 @@ export class PaymentModel extends TimeStamps {
 	@prop({ type: () => Number })
 	period?: number;
 
+	@prop({ type: () => String })
+	currencyName: string;
+
 	// Next payment Dat
 	@prop({ type: () => Date })
 	nextDate?: Date;
-
-	@prop({ type: () => Date, required: true })
-	paymentDate: Date;
 
 	@prop({ type: () => Date })
 	lastDate?: Date;
