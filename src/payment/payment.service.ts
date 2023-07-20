@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PaymentDto } from './dto/payment.dto';
 import { InjectModel } from 'nestjs-typegoose';
 import { PaymentModel } from './payment.model';
@@ -8,6 +8,12 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { UserService } from 'src/user/user.service';
 import { ObjectId } from 'mongoose';
 import { PaymentsListDto } from './dto/rangedPayments.dto';
+import { names } from 'src/balance/names';
+import {
+	balanceExceptions,
+	paymentExceptions,
+} from 'src/common/exception.constants';
+import { Diff2BalanceDto } from 'src/balance/dto/diff2.balance.dto';
 
 @Injectable()
 export class PaymentService {
@@ -26,9 +32,22 @@ export class PaymentService {
 	async getPaymentById(email: string, id: ObjectId) {
 		try {
 			const payment = await this.paymentModel.findById(id);
-			return payment.email == email ? payment : null;
+			if (payment.email == email) return payment;
+			throw new HttpException(
+				{
+					status: HttpStatus.UNAUTHORIZED,
+					error: paymentExceptions.EMAIL_AUTHORIZATION_ERROR,
+				},
+				HttpStatus.UNAUTHORIZED,
+			);
 		} catch {
-			return;
+			throw new HttpException(
+				{
+					status: HttpStatus.UNPROCESSABLE_ENTITY,
+					error: paymentExceptions.PAYMENT_NOT_EXIST,
+				},
+				HttpStatus.UNPROCESSABLE_ENTITY,
+			);
 		}
 	}
 
@@ -54,6 +73,20 @@ export class PaymentService {
 	}
 
 	async createPayment(email: string, dto: PaymentDto) {
+		if (!Object.keys(names).includes(dto.currencyName))
+			throw new HttpException(
+				{
+					status: HttpStatus.UNPROCESSABLE_ENTITY,
+					error: balanceExceptions.CURRENCY_NOT_EXIST,
+				},
+				HttpStatus.UNPROCESSABLE_ENTITY,
+			);
+		const user = await this.userService.findUser(email);
+		if (!dto.period)
+			this.balanceService.diffBalance2(email, {
+				diff: dto.type == 'income' ? dto.price : -dto.price,
+				currencyName: dto.currencyName,
+			});
 		let newPayment;
 		if (dto.period) {
 			newPayment = new this.paymentModel({
@@ -62,8 +95,11 @@ export class PaymentService {
 				price: dto.price,
 				category: dto.category,
 				period: dto.period,
-				nextDate: await this.updateNextDate(dto.period),
-				paymentDate: new Date(),
+				nextDate: await this.updateNextDate(
+					dto.period,
+					dto.startDay ? dto.startDay : new Date(),
+				),
+				currencyName: dto.currencyName,
 				type: dto.type,
 			});
 		} else {
@@ -71,13 +107,12 @@ export class PaymentService {
 				email,
 				title: dto.title,
 				price: dto.price,
+				currencyName: dto.currencyName,
 				category: dto.category,
-				paymentDate: new Date(),
 				type: dto.type,
 			});
 		}
 
-		const user = await this.userService.findUser(email);
 		user.payments = [...user.payments, newPayment.id];
 		await user.save();
 		return newPayment.save();
@@ -90,16 +125,20 @@ export class PaymentService {
 				!payment.lastDate &&
 				payment.nextDate < new Date()
 			) {
-				await this.balanceService.diffBalance(payment.email, {
+				await this.balanceService.diffBalance2(payment.email, {
 					diff: payment.type == 'income' ? payment.price : -payment.price,
+					currencyName: payment.currencyName,
 				});
-				payment.nextDate = await this.updateNextDate(payment.period);
+				payment.nextDate = await this.updateNextDate(
+					payment.period,
+					payment.nextDate,
+				);
 			}
 		}
 	}
 
-	async updateNextDate(period: number): Promise<Date> {
-		const currentDate: Date = new Date();
+	async updateNextDate(period: number, startDate: Date): Promise<Date> {
+		const currentDate: Date = startDate;
 		currentDate.setDate(currentDate.getDate() + period);
 		return currentDate;
 	}

@@ -13,6 +13,9 @@ export class PaymentModel extends TimeStamps {
 	@prop({ type: () => Number, required: true })
 	price: number;
 
+	@prop({ type: () => String, required: true })
+	currencyName: string;
+
 	@prop({ type: () => String, default: 'main' })
 	category: string;
 
