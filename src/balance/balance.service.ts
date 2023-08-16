@@ -5,7 +5,7 @@ import {InjectModel} from "nestjs-typegoose";
 import {UserModel} from "../user/user.model";
 import {ReturnModelType} from "@typegoose/typegoose";
 import {BalanceModel} from "./balance.model";
-import {names, namesType} from "./names";
+import {balanceTypes, namesType} from "./balance.types";
 import {EditBalanceDto} from "./dto/edit.balance.dto";
 import {DiffBalanceDto} from "./dto/diff.balance.dto";
 import {balanceExceptions} from "../common/exceptions/exception.constants";
@@ -25,7 +25,7 @@ export class BalanceService {
 
     // TODO Вместо проверки в функциях, проверять условие в интерсепторе для всех запросов где используются разные валюты
     isCurrencyExist(newBase:string): void{
-        const flag =  Object.keys(names).includes(newBase);
+        const flag =  Object.keys(balanceTypes).includes(newBase);
         if (!flag) throw new ServiceException(balanceExceptions.CURRENCY_NOT_EXIST);
     }
 
@@ -72,10 +72,9 @@ export class BalanceService {
         await data.save();
     }
 
-
     // TODO Добавить русские названия валют
     getNames(): namesType{
-        return names;
+        return balanceTypes;
     }
 
     async getCurrencies(newBase?:string): Promise<Map<string,number>>{
@@ -91,8 +90,6 @@ export class BalanceService {
         return user.listBalance.currencies;
     }
 
-
-    // TODO  Проверка в дтошке что новый баланс больше нуля
     async editBalance(
         email: string,
         dto: EditBalanceDto,

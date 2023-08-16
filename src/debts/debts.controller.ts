@@ -17,7 +17,7 @@ import {GetCurrentUserEmail} from 'src/common/decorators/get-current-userEmail.d
 import {CloseDebtsDto} from './dto/close.debts.dto';
 import {debt} from './debts.type';
 import {ObjectId, Types} from 'mongoose';
-import {availableCurrency} from "../balance/names";
+import {availableCurrency} from "../balance/balance.types";
 import {EditIdDebtsDto} from "./dto/edit.id.debts.dto";
 
 @Controller('debts')

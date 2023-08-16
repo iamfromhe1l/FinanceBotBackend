@@ -1,7 +1,7 @@
 import { prop } from '@typegoose/typegoose';
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { debt } from './debts.type';
-import {availableCurrency} from "../balance/names";
+import {availableCurrency} from "../balance/balance.types";
 
 export interface DebtsModel extends Base {}
 export class DebtsModel extends TimeStamps {

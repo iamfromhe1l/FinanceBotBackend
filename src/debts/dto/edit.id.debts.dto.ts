@@ -1,5 +1,5 @@
 import {IsNumber} from 'class-validator';
-import {availableCurrency} from "../../balance/names";
+import {availableCurrency} from "../../balance/balance.types";
 
 export class EditIdDebtsDto {
     @IsNumber()

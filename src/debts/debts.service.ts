@@ -7,11 +7,11 @@ import { RemoveDebtsDto } from './dto/remove.debts.dto';
 import { UserService } from '../user/user.service';
 import { EditDebtsDto } from './dto/edit.debts.dto';
 import { CloseDebtsDto } from './dto/close.debts.dto';
-import {ObjectId, Types} from 'mongoose';
+import {Types} from 'mongoose';
 import { debt } from './debts.type';
 import {debtsExceptions} from "../common/exceptions/exception.constants";
 import {ServiceException} from "../common/exceptions/serviceException";
-import {availableCurrency} from "../balance/names";
+import {availableCurrency} from "../balance/balance.types";
 import {BalanceService} from "../balance/balance.service";
 import {EditIdDebtsDto} from "./dto/edit.id.debts.dto";
 
@@ -51,7 +51,7 @@ export class DebtsService {
 	}
 
 	//Тяжелоооооооооо
-	//TODO Если чел открыл долг и поставил editBalance=false, а потом добавил новый долг также в баксах
+	//TODO Если чел открыл долг и поставил editBalance=false, а потом добавил новый долг
 	//но editBalance=true то чу делать. Снимать со счета только добавленный долг, но тогда при закрытии долга
 	//не понятно сколько нужно добавлять в баланс. А если снимать полностью долг, то проблема в том, что первый
 	//первый долг был с editBalance=false
@@ -72,12 +72,6 @@ export class DebtsService {
 			...dto,
 			debtDate: Date.now(),
 			fixedCurrencies
-			// name: dto.name,
-			// amount: dto.amount,
-			// type: dto.debtType,
-			// editBalance: dto.editBalance,
-			// currency: dto.currency,
-			// isFixed: dto.isFixed
 		});
 		const user = await this.userService.findUser(email);
 

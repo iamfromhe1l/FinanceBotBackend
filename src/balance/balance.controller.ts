@@ -4,7 +4,7 @@ import {GetCurrentUserEmail} from 'src/common/decorators/get-current-userEmail.d
 import {Public} from "../common/decorators/public.decorator";
 import {EditBalanceDto} from "./dto/edit.balance.dto";
 import {DiffBalanceDto} from "./dto/diff.balance.dto";
-import {namesType} from "./names";
+import {namesType} from "./balance.types";
 
 @Controller('balance')
 export class BalanceController {
