@@ -1,6 +1,7 @@
-export type availableCurrency = keyof typeof names;
+export type availableCurrency = keyof typeof balanceTypes;
+export type namesType = typeof balanceTypes;
 
-export const names = {
+export const balanceTypes = {
   "AED": "United Arab Emirates Dirham",
   "AFN": "Afghan Afghani",
   "ALL": "Albanian Lek",

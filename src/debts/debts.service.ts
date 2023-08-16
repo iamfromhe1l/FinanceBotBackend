@@ -6,10 +6,14 @@ import { AddDebtsDto } from './dto/add.debts.dto';
 import { RemoveDebtsDto } from './dto/remove.debts.dto';
 import { UserService } from '../user/user.service';
 import { EditDebtsDto } from './dto/edit.debts.dto';
-import { UserModel } from '../user/user.model';
 import { CloseDebtsDto } from './dto/close.debts.dto';
-import { ObjectId } from 'mongoose';
+import {Types} from 'mongoose';
 import { debt } from './debts.type';
+import {debtsExceptions} from "../common/exceptions/exception.constants";
+import {ServiceException} from "../common/exceptions/serviceException";
+import {availableCurrency} from "../balance/balance.types";
+import {BalanceService} from "../balance/balance.service";
+import {EditIdDebtsDto} from "./dto/edit.id.debts.dto";
 
 @Injectable()
 export class DebtsService {
@@ -17,87 +21,96 @@ export class DebtsService {
 		@InjectModel(DebtsModel)
 		private readonly debtsModel: ReturnModelType<typeof DebtsModel>,
 		private readonly userService: UserService,
+		private readonly balanceService: BalanceService,
 	) {}
 
-	async getDebt(email: string, name: string, debtType: debt) {
-		return await this.debtsModel
+	//зач тут exec()
+	async getDebt(email: string, name: string, debtType: debt){
+		return this.debtsModel
 			.findOne({ name, email, type: debtType })
 			.exec();
 	}
 
-	async getDebtById(id: ObjectId) {
-		try {
-			return await this.debtsModel.findById(id);
-		} catch {
-			return null;
-		}
+	async getDebtById(id: Types.ObjectId) {
+		return this.debtsModel.findById(id);
 	}
 
-	async addDebt(
-		email: string,
-		dto: AddDebtsDto,
-	): Promise<DebtsModel | UserModel> {
+
+	// Открытие долга мне   balance -
+	// Открытие долга моего balance +
+	// Закрытие долга мне   balance +
+	// Закрытие долга моего balance -
+	async editBalance(type:debt, opening:boolean, email, amount): Promise<void>{
+		const operation = type=="my" && opening || type=="me" && !opening;
+		// как будет "знак" на инглише
+		const znak = operation ? 1 : -1;
+		await this.balanceService.diffBalance(email,{
+			diff:amount*znak,
+			currencyName:"RUS"
+		});
+	}
+
+	//Тяжелоооооооооо
+	//TODO Если чел открыл долг и поставил editBalance=false, а потом добавил новый долг
+	//но editBalance=true то чу делать. Снимать со счета только добавленный долг, но тогда при закрытии долга
+	//не понятно сколько нужно добавлять в баланс. А если снимать полностью долг, то проблема в том, что первый
+	//первый долг был с editBalance=false
+	async addDebt(email: string, dto: AddDebtsDto,): Promise<DebtsModel> {
 		const debt = await this.getDebt(email, dto.name, dto.debtType);
-		if (debt) {
-			debt.amount += dto.amount;
-			await debt.save();
-			return debt;
+		if (dto.editBalance)
+			await this.editBalance(dto.debtType,true,email,dto.amount);
+		if (debt)
+			return await this.editDebtById(email,debt._id,{editedAmount:dto.amount,currency:dto.currency});
+
+		const fixedCurrencies = new Map<availableCurrency,number>;
+		if (dto.isFixed){
+			const actualCurrencies = await this.balanceService.getCurrencies();
+			fixedCurrencies.set(dto.currency,actualCurrencies.get(dto.currency));
 		}
 		const newDebt = new this.debtsModel({
 			email,
-			name: dto.name,
-			amount: dto.amount,
+			...dto,
 			debtDate: Date.now(),
-			type: dto.debtType,
+			fixedCurrencies
 		});
 		const user = await this.userService.findUser(email);
+
+		//TODO мб следующую строчку лучше делать через юзерСервис и монгусовские методы
 		user.debts = [...user.debts, newDebt.id];
 		await user.save();
 		return await newDebt.save();
 	}
 
-	async deleteDebt(
-		email: string,
-		dto: RemoveDebtsDto,
-	): Promise<DebtsModel | number> {
+	async deleteDebt(email: string, dto: RemoveDebtsDto): Promise<DebtsModel> {
 		const debt = await this.getDebt(email, dto.name, dto.debtType);
-		if (!debt) return -1;
+		if (!debt) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
 		const user = await this.userService.findUser(email);
 		user.debts.splice(user.debts.indexOf(debt.id));
 		await user.save();
-		return await debt.deleteOne();
+		return debt.deleteOne();
 	}
 
-	async deleteDebtById(
-		email: string,
-		id: ObjectId,
-	): Promise<DebtsModel | number> {
+	async deleteDebtById(email: string, id: Types.ObjectId,): Promise<DebtsModel> {
 		const debt = await this.getDebtById(id);
-		if (!debt || debt.email != email) return -1;
+		if (!debt || debt.email != email) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
 		const user = await this.userService.findUser(email);
 		user.debts.splice(user.debts.indexOf(debt.id));
 		await user.save();
-		return await debt.deleteOne();
+		return debt.deleteOne();
 	}
 
-	async editDebt(
-		email: string,
-		dto: EditDebtsDto,
-	): Promise<DebtsModel | number> {
+	async editDebt(email: string, dto: EditDebtsDto,): Promise<DebtsModel> {
 		const debt = await this.getDebt(email, dto.name, dto.debtType);
-		if (!debt || !dto.editedAmount) return -1;
-		debt.amount = dto.editedAmount;
+		if (!debt) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
+		debt.listDebts.set(dto.currency,dto.editedAmount);
 		return await debt.save();
 	}
 
-	async editDebtById(
-		email: string,
-		id: ObjectId,
-		editedAmount: number,
-	): Promise<DebtsModel | number> {
+	async editDebtById(email: string, id: Types.ObjectId, dto: EditIdDebtsDto): Promise<DebtsModel> {
 		const debt = await this.getDebtById(id);
-		if (!debt || debt.email != email || !editedAmount) return -1;
-		debt.amount = editedAmount;
+		if (!debt || debt.email != email) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
+		//Создать метод для добавления новых currencies;
+		debt.listDebts.set(dto.currency,dto.editedAmount);
 		return await debt.save();
 	}
 
@@ -118,18 +131,34 @@ export class DebtsService {
 			.skip(current * step);
 	}
 
-	async getTotalDebts(email: string, debtType: debt): Promise<number> {
+	async getReducedDebtsMap(email: string, debtType: debt): Promise<Map<availableCurrency,number>>{
 		const debtsList = await this.getDebtsList(email, debtType);
-		return debtsList.map((el) => el.amount).reduce((acc, el) => acc + el, 0);
+		const TotalDebtsMap = new Map<availableCurrency,number>;
+		debtsList.map(el => {
+			el.listDebts.forEach((value,key) => {
+				TotalDebtsMap.set(key,value + TotalDebtsMap.get(key));
+			});
+		});
+		return TotalDebtsMap;
 	}
 
-	async closeDebt(
-		email: string,
-		dto: CloseDebtsDto,
-	): Promise<DebtsModel | number> {
+	async getReducedDebts(email: string, debtType: debt): Promise<number>{
+		const debtsList = await this.getDebtsList(email, debtType);
+		let totalDebts = 0;
+		const currencies = await this.balanceService.getCurrencies();
+		debtsList.map(el => {
+			el.listDebts.forEach((value,key) => {
+				totalDebts += value / currencies.get(key);
+			});
+		});
+		return totalDebts;
+	}
+
+	async closeDebt(email: string, dto: CloseDebtsDto): Promise<DebtsModel> {
 		const debt = await this.getDebtById(dto.id);
-		if (!debt || debt.email != email) return -1;
+		if (!debt || debt.email != email) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
 		debt.isClosed = true;
 		return debt.save();
 	}
+	
 }

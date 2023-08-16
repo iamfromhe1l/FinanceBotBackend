@@ -1,6 +1,10 @@
-import { IsNumber } from 'class-validator';
+import {IsNumber, IsString, Min} from 'class-validator';
 
 export class EditBalanceDto {
-	@IsNumber()
-	editedBalance: number;
+    @IsString()
+    currencyName: string;
+
+    @IsNumber()
+    @Min(0)
+    editedBalance: number;
 }

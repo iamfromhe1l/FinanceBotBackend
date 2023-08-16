@@ -1,16 +1,15 @@
-import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
-import {EditBalanceDto} from './dto/edit.balance.dto';
-import {DiffBalanceDto} from './dto/diff.balance.dto';
+import {Injectable} from '@nestjs/common';
 import {UserService} from 'src/user/user.service';
 import {Cron, CronExpression} from "@nestjs/schedule";
 import {InjectModel} from "nestjs-typegoose";
 import {UserModel} from "../user/user.model";
 import {ReturnModelType} from "@typegoose/typegoose";
 import {BalanceModel} from "./balance.model";
-import {names} from "./names";
-import {Edit2BalanceDto} from "./dto/edit2.balance.dto";
-import {Diff2BalanceDto} from "./dto/diff2.balance.dto";
-import {balanceExceptions} from "../common/exception.constants";
+import {balanceTypes, namesType} from "./balance.types";
+import {EditBalanceDto} from "./dto/edit.balance.dto";
+import {DiffBalanceDto} from "./dto/diff.balance.dto";
+import {balanceExceptions} from "../common/exceptions/exception.constants";
+import {ServiceException} from "../common/exceptions/serviceException";
 
 
 @Injectable()
@@ -24,39 +23,10 @@ export class BalanceService {
     ) {
     }
 
-    async editBalance(
-        email: string,
-        dto: EditBalanceDto,
-    ): Promise<{ balance: number }> {
-        const user = await this.userService.findUser(email);
-        user.balance = dto.editedBalance;
-        await user.save();
-        return {balance: user.balance};
-    }
-
-    async diffBalance(
-        email: string,
-        dto: DiffBalanceDto,
-    ): Promise<{ balance: number }> {
-        const user = await this.userService.findUser(email);
-        user.balance += dto.diff;
-        await user.save();
-        return {balance: user.balance};
-    }
-
-    async getBalance(email: string): Promise<number> {
-        return (await this.userService.findUser(email)).balance;
-    }
-
-
-    // ------------------------------- New version ---------------------------------------
-    // TODO Проверять условие в интерсепторе для всех запросов где используются разные валюты
+    // TODO Вместо проверки в функциях, проверять условие в интерсепторе для всех запросов где используются разные валюты
     isCurrencyExist(newBase:string): void{
-        const flag =  Object.keys(names).includes(newBase);
-        if (!flag) throw new HttpException({
-            status: HttpStatus.UNPROCESSABLE_ENTITY,
-            error: balanceExceptions.CURRENCY_NOT_EXIST,
-        }, HttpStatus.UNPROCESSABLE_ENTITY);
+        const flag =  Object.keys(balanceTypes).includes(newBase);
+        if (!flag) throw new ServiceException(balanceExceptions.CURRENCY_NOT_EXIST);
     }
 
     changeBaseCurrency(rates: Map<string,number>,newBase: string):Map<string,number>{
@@ -76,8 +46,8 @@ export class BalanceService {
     async addCurrency(email: string,newBase: string): Promise<boolean>{
         this.isCurrencyExist(newBase);
         const user = await this.userService.findUser(email);
-        if (!user.listBalance.has(newBase)){
-            user.listBalance.set(newBase,0);
+        if (!user.listBalance.currencies.has(newBase)){
+            user.listBalance.currencies.set(newBase,0);
             await user.save();
             return true;
         }
@@ -102,53 +72,45 @@ export class BalanceService {
         await data.save();
     }
 
-
     // TODO Добавить русские названия валют
-    getNames(): string{
-        return JSON.stringify(names);
+    getNames(): namesType{
+        return balanceTypes;
     }
 
-    async getCurrencies(newBase?:string): Promise<string>{
+    async getCurrencies(newBase?:string): Promise<Map<string,number>>{
         this.isCurrencyExist(newBase);
-        const curr = await this.balanceModel.find({});
-        if (newBase){
-            const data = this.changeBaseCurrency(curr[0].currencies,newBase) as Map<string,number>;
-            return JSON.stringify([...data]);
-        }
-        return JSON.stringify([...curr[0].currencies]);
+        const curr = await this.balanceModel.findOne({});
+        if (newBase)
+            return this.changeBaseCurrency(curr.currencies,newBase);
+        return curr.currencies;
     }
 
-    async getBalance2(email: string): Promise<Map<string,number>>{
+    async getBalance(email: string): Promise<Map<string,number>>{
         const user = await this.userService.findUser(email);
-        return user.listBalance;
+        return user.listBalance.currencies;
     }
 
-
-    // TODO  Проверка в дтошке что новый баланс больше нуля
-    async editBalance2(
+    async editBalance(
         email: string,
-        dto: Edit2BalanceDto,
+        dto: EditBalanceDto,
     ): Promise<Map<string,number>> {
         this.isCurrencyExist(dto.currencyName);
         const user = await this.userService.findUser(email);
-        user.listBalance.set(dto.currencyName,dto.editedBalance);
+        user.listBalance.currencies.set(dto.currencyName,dto.editedBalance);
         await user.save();
-        return user.listBalance;
+        return user.listBalance.currencies;
     }
 
-    async diffBalance2(
+    async diffBalance(
         email: string,
-        dto: Diff2BalanceDto,
+        dto: DiffBalanceDto,
     ): Promise<Map<string,number>> {
         this.isCurrencyExist(dto.currencyName);
         const user = await this.userService.findUser(email);
-        const newValue = user.listBalance.get(dto.currencyName) + dto.diff;
-        if (newValue < 0) throw new HttpException({
-            status: HttpStatus.UNPROCESSABLE_ENTITY,
-            error: balanceExceptions.LESS_THAN_ZERO,
-        }, HttpStatus.UNPROCESSABLE_ENTITY);
-        user.listBalance.set(dto.currencyName,newValue);
+        const newValue = user.listBalance.currencies.get(dto.currencyName) + dto.diff;
+        if (newValue < 0) throw new ServiceException(balanceExceptions.LESS_THAN_ZERO);
+        user.listBalance.currencies.set(dto.currencyName,newValue);
         await user.save();
-        return user.listBalance;
+        return user.listBalance.currencies;
     }
 }

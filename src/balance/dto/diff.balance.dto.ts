@@ -1,7 +1,10 @@
-import { IsNumber, Max } from 'class-validator';
+import {IsNumber, IsString, Max} from 'class-validator';
 
 export class DiffBalanceDto {
-	@Max(1000000000)
-	@IsNumber()
-	diff: number;
+    @Max(1000000000)
+    @IsNumber()
+    diff: number;
+
+    @IsString()
+    currencyName: string;
 }

@@ -7,3 +7,7 @@ export enum paymentExceptions {
 	EMAIL_AUTHORIZATION_ERROR = 'Email payment-а и AuthEmail не совпадают',
 	PAYMENT_NOT_EXIST = 'Payment-а с таким id не существует',
 }
+
+export enum debtsExceptions {
+    DEBT_NOT_EXIST = 'Выбранного долга не существует'
+}

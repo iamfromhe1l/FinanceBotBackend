@@ -19,13 +19,13 @@ import { PaymentsListDto } from './dto/rangedPayments.dto';
 export class PaymentController {
 	constructor(private readonly paymentService: PaymentService) {}
 
-	@Post('create')
-	async createPayment(
-		@GetCurrentUserEmail() email: string,
-		@Body() dto: PaymentDto,
-	): Promise<PaymentModel> {
-		return await this.paymentService.createPayment(email, dto);
-	}
+	// @Post('create')
+	// async createPayment(
+	// 	@GetCurrentUserEmail() email: string,
+	// 	@Body() dto: PaymentDto,
+	// ): Promise<PaymentModel> {
+	// 	return await this.paymentService.createPayment(email, dto);
+	// }
 
 	@Get('list')
 	async getAllPaymentsList(
@@ -85,6 +85,13 @@ export class PaymentController {
 	): Promise<PaymentModel | number> {
 		return await this.paymentService.stopPaymentScheduleById(email, id);
 	}
+	// @Put(':title')
+	// async stopPaymentSchedule(
+	// 	@GetCurrentUserEmail() email: string,
+	// 	@Param('title') title: string,
+	// ) {
+	// 	return this.incomeService.stopPaymentSchedule(email, title);
+	// }
 
 	@Delete(':title')
 	async deletePayment(

@@ -14,37 +14,38 @@ export class PublicService {
         private readonly publicModel: ReturnModelType<typeof PublicModel>,
     ) {}
 
-    @Cron(CronExpression.EVERY_DAY_AT_11PM)
-    async updatePublicData() {
-        const usersCount = await this.userModel.countDocuments();
-        const users = await this.userModel
-            .find()
-            .populate([{ path: 'payments' }, { path: 'debts' }])
-            .exec();
-        let totalBalance = 0,
-            totalDebtsToMe = 0,
-            totalMyDebts = 0;
-        users.forEach((el) => {
-            totalBalance += el.listBalance.get('RUB');
-            totalDebtsToMe += el.debts.reduce(
-                (acc, v) => (acc += v.type == 'me' ? v.amount : 0),
-                0,
-            );
-            totalMyDebts += el.debts.reduce(
-                (acc, v) => (acc += v.type == 'my' ? v.amount : 0),
-                0,
-            );
-        });
-        await this.publicModel.deleteOne({});
-        const data = new this.publicModel({
-            usersCount,
-            totalBalance,
-            totalDebtsToMe,
-            totalMyDebts,
-        });
-        await data.save();
-        return data;
-    }
+    // TODO ошибка и уменьшить функцию
+    // @Cron(CronExpression.EVERY_DAY_AT_11PM)
+    // async updatePublicData() {
+    //     const usersCount = await this.userModel.countDocuments();
+    //     const users = await this.userModel
+    //         .find()
+    //         .populate([{ path: 'payments' }, { path: 'debts' }])
+    //         .exec();
+    //     let totalBalance = 0,
+    //         totalDebtsToMe = 0,
+    //         totalMyDebts = 0;
+    //     users.forEach((el) => {
+    //         totalBalance += el.listBalance.get('RUB');
+    //         totalDebtsToMe += el.debts.reduce(
+    //             (acc, v) => (acc += v.type == 'me' ? v.amount : 0),
+    //             0,
+    //         );
+    //         totalMyDebts += el.debts.reduce(
+    //             (acc, v) => (acc += v.type == 'my' ? v.amount : 0),
+    //             0,
+    //         );
+    //     });
+    //     await this.publicModel.deleteOne({});
+    //     const data = new this.publicModel({
+    //         usersCount,
+    //         totalBalance,
+    //         totalDebtsToMe,
+    //         totalMyDebts,
+    //     });
+    //     await data.save();
+    //     return data;
+    // }
 
     async getPublicData() {
         const doc: PublicModel = await this.publicModel.findOne({});

@@ -3,6 +3,7 @@ import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { Types } from 'mongoose';
 import { PaymentModel } from 'src/payment/payment.model';
 import { DebtsModel } from '../debts/debts.model';
+import {BalanceModel} from "../balance/balance.model";
 
 export interface UserModel extends Base {}
 export class UserModel extends TimeStamps {
@@ -19,8 +20,10 @@ export class UserModel extends TimeStamps {
 	@prop({ type: () => String })
 	name: string;
 
-	@prop({ default: { RUS: 0 } })
-	listBalance: Map<string, number>;
+
+	// Проверить как выглядит при популейте
+	@prop({ type: () => Types.ObjectId, ref: () => PaymentModel })
+	listBalance: BalanceModel;
 
 	@prop({ default: 0 })
 	balance: number;

@@ -1,10 +1,8 @@
 import { IsString } from 'class-validator';
-import { ObjectId } from 'mongoose';
-import { debt } from '../debts.type';
+import {Types} from 'mongoose';
 
 export class CloseDebtsDto {
 	@IsString()
-	id: ObjectId;
+	id: Types.ObjectId;
 
-	debtType: debt;
 }
