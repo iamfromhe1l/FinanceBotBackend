@@ -1,15 +1,13 @@
-import { IsNumber, IsString } from 'class-validator';
-import { debt } from '../debts.type';
+import {IsNumber} from 'class-validator';
 import {availableCurrency} from "../../balance/balance.types";
+import { Types } from "mongoose";
 
 export class EditDebtsDto {
-	@IsString()
-	name: string;
+    @IsNumber()
+    editedAmount: number;
 
-	@IsNumber()
-	editedAmount: number;
+    //не нужно, теперь разные валюты хранятся в разных документах
+    currency: availableCurrency;
 
-	currency: availableCurrency;
-
-	debtType: debt;
+    id: Types.ObjectId;
 }

@@ -4,7 +4,11 @@ export enum balanceExceptions {
 }
 
 export enum paymentExceptions {
+
+	// TODO вынести в отдельную ошибку случай когда authEmail не совпадает с email в payment, debt и тд
 	EMAIL_AUTHORIZATION_ERROR = 'Email payment-а и AuthEmail не совпадают',
+
+
 	PAYMENT_NOT_EXIST = 'Payment-а с таким id не существует',
 }
 

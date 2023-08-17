@@ -20,9 +20,8 @@ export class UserModel extends TimeStamps {
 	@prop({ type: () => String })
 	name: string;
 
-
 	// Проверить как выглядит при популейте
-	@prop({ type: () => Types.ObjectId, ref: () => PaymentModel })
+	@prop({ type: () => Types.ObjectId, ref: () => BalanceModel  })
 	listBalance: BalanceModel;
 
 	@prop({ default: 0 })

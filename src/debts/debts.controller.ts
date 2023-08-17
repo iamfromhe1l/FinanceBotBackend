@@ -7,36 +7,31 @@ import {
     Post,
     Put,
     Query,
-} from '@nestjs/common';
-import {DebtsService} from './debts.service';
-import {AddDebtsDto} from './dto/add.debts.dto';
-import {RemoveDebtsDto} from './dto/remove.debts.dto';
-import {EditDebtsDto} from './dto/edit.debts.dto';
-import {DebtsModel} from './debts.model';
-import {GetCurrentUserEmail} from 'src/common/decorators/get-current-userEmail.decorator';
-import {CloseDebtsDto} from './dto/close.debts.dto';
-import {debt} from './debts.type';
-import {ObjectId, Types} from 'mongoose';
-import {availableCurrency} from "../balance/balance.types";
-import {EditIdDebtsDto} from "./dto/edit.id.debts.dto";
+} from "@nestjs/common";
+import { DebtsService } from "./debts.service";
+import { AddDebtsDto } from "./dto/add.debts.dto";
+import { DebtsModel } from "./debts.model";
+import { GetCurrentUserEmail } from "src/common/decorators/get-current-userEmail.decorator";
+import { CloseDebtsDto } from "./dto/close.debts.dto";
+import { debtType } from "./debts.type";
+import { Types } from "mongoose";
+import { availableCurrency } from "../balance/balance.types";
+import { EditDebtsDto } from "./dto/edit.debts.dto";
 
-@Controller('debts')
+@Controller("debts")
 export class DebtsController {
     constructor(private readonly debtsService: DebtsService) {
     }
 
-    //TODO При измененной базовой валюты, например написать helper который будет менять курсы на нужные
-    //TODO и вызывать его в интерсепторе
-
-    @Post('add')
+    @Post("add")
     async addDebt(
         @GetCurrentUserEmail() email: string,
-        @Body() dto: AddDebtsDto
+        @Body() dto: AddDebtsDto,
     ): Promise<DebtsModel> {
         return this.debtsService.addDebt(email, dto);
     }
 
-    @Post('close')
+    @Post("close")
     async closeDebt(
         @GetCurrentUserEmail() email: string,
         @Body() dto: CloseDebtsDto,
@@ -44,36 +39,28 @@ export class DebtsController {
         return this.debtsService.closeDebt(email, dto);
     }
 
-    @Delete()
+    @Delete(":id")
     async deleteDebt(
         @GetCurrentUserEmail() email: string,
-        @Body() dto: RemoveDebtsDto,
+        @Param("id") id: Types.ObjectId,
     ): Promise<DebtsModel> {
-        return this.debtsService.deleteDebt(email, dto);
+        return this.debtsService.deleteDebt(email, id);
     }
 
-    @Delete(':id')
-    async deleteDebtById(
-        @GetCurrentUserEmail() email: string,
-        @Param('id') id: Types.ObjectId,
-    ): Promise<DebtsModel> {
-        return this.debtsService.deleteDebtById(email, id);
-    }
-
-    @Get('debtsList')
+    @Get("debtsList")
     async getDebtsList(
         @GetCurrentUserEmail() email: string,
-        @Query('debtType') debtType: debt,
+        @Query("debtType") debtType: debtType,
     ): Promise<DebtsModel[]> {
         return this.debtsService.getDebtsList(email, debtType);
     }
 
-    @Get('rangedDebtsList')
+    @Get("rangedDebtsList")
     async getRangedDebtsList(
         @GetCurrentUserEmail() email: string,
-        @Query('step') step: number,
-        @Query('current') current: number,
-        @Query('debtType') debtType: debt,
+        @Query("step") step: number,
+        @Query("current") current: number,
+        @Query("debtType") debtType: debtType,
     ): Promise<DebtsModel[]> {
         return this.debtsService.getRangedDebtsList(email, debtType, step, current);
     }
@@ -81,34 +68,24 @@ export class DebtsController {
     @Get("reduced")
     async getReducedDebts(
         @GetCurrentUserEmail() email: string,
-        @Query('debtType') debtType: debt,
+        @Query("debtType") debtType: debtType,
     ): Promise<number> {
         return this.debtsService.getReducedDebts(email, debtType);
     }
 
-    @Get('reducedMap')
+    @Get("reducedMap")
     async getReducedDebtsMap(
         @GetCurrentUserEmail() email: string,
-        @Query('debtType') debtType: debt,
+        @Query("debtType") debtType: debtType,
     ): Promise<Map<availableCurrency, number>> {
         return this.debtsService.getReducedDebtsMap(email, debtType);
     }
 
     @Put()
-    async editDebts(
+    async editDebt(
         @GetCurrentUserEmail() email: string,
         @Body() dto: EditDebtsDto,
     ): Promise<DebtsModel> {
         return this.debtsService.editDebt(email, dto);
-    }
-
-    //create DTO
-    @Put(':id')
-    async editDebtById(
-        @GetCurrentUserEmail() email: string,
-        @Body() dto: EditIdDebtsDto,
-        @Param('id') id: Types.ObjectId,
-    ): Promise<DebtsModel> {
-        return this.debtsService.editDebtById(email, id, dto);
     }
 }

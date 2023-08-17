@@ -101,6 +101,7 @@ export class BalanceService {
         return user.listBalance.currencies;
     }
 
+
     async diffBalance(
         email: string,
         dto: DiffBalanceDto,
