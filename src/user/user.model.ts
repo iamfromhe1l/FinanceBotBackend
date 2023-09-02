@@ -24,6 +24,7 @@ export class UserModel extends TimeStamps {
 	@prop({ type: () => Types.ObjectId, ref: () => BalanceModel  })
 	listBalance: BalanceModel;
 
+	// поч 2 баланса
 	@prop({ default: 0 })
 	balance: number;
 

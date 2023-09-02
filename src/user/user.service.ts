@@ -30,10 +30,23 @@ export class UserService {
 		);
 	}
 
+	async getUCollectionWithPopulate() {
+		return this.userModel.find().populate([
+			{ path: 'payments' },
+			{ path: 'debts' },
+		]).exec();
+	}
+
 	async getUserWithPopulate(email: string) {
 		return (await this.userModel.findOne({ email })).populate([
 			{ path: 'payments' },
 			{ path: 'debts' },
+		]);
+	}
+
+	async getUserWithPaymentsPopulate(email: string) {
+		return (await this.userModel.findOne({ email })).populate([
+			{ path: 'payments' },
 		]);
 	}
 
@@ -54,5 +67,9 @@ export class UserService {
 
 	async updateUserHashRT(email: string, hash: string) {
 		await this.userModel.findOneAndUpdate({ email }, { hashRt: hash });
+	}
+
+	async getUsersCount(): Promise<number> {
+		return this.userModel.countDocuments();
 	}
 }
