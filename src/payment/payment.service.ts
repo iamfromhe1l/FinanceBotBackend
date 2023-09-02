@@ -6,13 +6,16 @@ import { ReturnModelType } from '@typegoose/typegoose';
 import { BalanceService } from 'src/balance/balance.service';
 // import { Cron, CronExpression } from '@nestjs/schedule';
 import { UserService } from 'src/user/user.service';
-import { ObjectId } from 'mongoose';
+import { ObjectId, Types } from "mongoose";
 import { PaymentsListDto } from './dto/rangedPayments.dto';
 // import { balanceTypes } from 'src/balance/balance.types';
 import {
-	balanceExceptions,
+	balanceExceptions, debtsExceptions,
 	paymentExceptions,
-} from 'src/common/exceptions/exception.constants';
+} from "src/common/exceptions/exception.constants";
+import { ServiceException } from "../common/exceptions/serviceException";
+import { editBalanceByPaymentType } from "./payment.type";
+import { Cron, CronExpression } from "@nestjs/schedule";
 
 @Injectable()
 export class PaymentService {
@@ -23,44 +26,34 @@ export class PaymentService {
 		private readonly userService: UserService,
 	) {}
 
-	// @Cron(CronExpression.EVERY_DAY_AT_10AM)
-	// async handleCron(): Promise<void> {
-	// 	await this.checkAllPayments();
-	// }
+	@Cron(CronExpression.EVERY_DAY_AT_10AM)
+	async handleCron(): Promise<void> {
+		await this.checkAllPayments();
+	}
 
-	async getPaymentById(email: string, id: ObjectId) {
+	async getPaymentById(email: string, id: Types.ObjectId) {
 		try {
 			const payment = await this.paymentModel.findById(id);
 			if (payment.email == email) return payment;
-			//'throw' of exception caught locally
-			// throw new HttpException(
-			// 	{
-			// 		status: HttpStatus.UNAUTHORIZED,
-			// 		error: paymentExceptions.EMAIL_AUTHORIZATION_ERROR,
-			// 	},
-			// 	HttpStatus.UNAUTHORIZED,
-			// );
+			throw new ServiceException(paymentExceptions.EMAIL_AUTHORIZATION_ERROR);
 		} catch {
-			throw new HttpException(
-				{
-					status: HttpStatus.UNPROCESSABLE_ENTITY,
-					error: paymentExceptions.PAYMENT_NOT_EXIST,
-				},
-				HttpStatus.UNPROCESSABLE_ENTITY,
-			);
+			throw new ServiceException(paymentExceptions.PAYMENT_NOT_EXIST);
 		}
+	}
+
+	async editBalanceByPayment(email: string, obj: editBalanceByPaymentType) {
+		return this.balanceService.diffBalance(email, {
+			diff: obj.type == 'income' ? obj.price : -obj.price,
+			currencyName: obj.currencyName,
+		});
 	}
 
 	async getPaymentsList(email: string): Promise<PaymentModel[]> {
 		return this.paymentModel.find({ email });
 	}
 
-	async getRangedPaymentsList(
-		email: string,
-		step = 10,
-		current = 0,
-	): Promise<PaymentModel[]> {
-		return await this.paymentModel
+	async getRangedPaymentsList(email: string, step = 10, current = 0,): Promise<PaymentModel[]> {
+		return this.paymentModel
 			.find({ email })
 			.limit((current + 1) * step)
 			.skip(current * step);
@@ -94,10 +87,7 @@ export class PaymentService {
 					.slip(current * step);
 	}
 
-	async getPaymentsListByDto(
-		email: string,
-		dto: PaymentsListDto,
-	): Promise<PaymentModel[]> {
+	async getPaymentsListByDto(email: string, dto: PaymentsListDto,): Promise<PaymentModel[]> {
 		return dto.periodic
 			? await this.paymentModel.find({
 					email,
@@ -114,82 +104,39 @@ export class PaymentService {
 			  });
 	}
 
-
-	// TODO diff_balance2 и уменьшить функцию
-	// async createPayment(email: string, dto: PaymentDto) {
-	// 	if (!Object.keys(names).includes(dto.currencyName))
-	// 		throw new HttpException(
-	// 			{
-	// 				status: HttpStatus.UNPROCESSABLE_ENTITY,
-	// 				error: balanceExceptions.CURRENCY_NOT_EXIST,
-	// 			},
-	// 			HttpStatus.UNPROCESSABLE_ENTITY,
-	// 		);
-	// 	const user = await this.userService.findUser(email);
-	// 	if (!dto.period)
-	// 		this.balanceService.diffBalance2(email, {
-	// 			diff: dto.type == 'income' ? dto.price : -dto.price,
-	// 			currencyName: dto.currencyName,
-	// 		});
-	// 	let newPayment;
-	// 	if (dto.period) {
-	// 		newPayment = new this.paymentModel({
-	// 			email,
-	// 			title: dto.title,
-	// 			price: dto.price,
-	// 			category: dto.category,
-	// 			period: dto.period,
-	// 			nextDate: await this.updateNextDate(
-	// 				dto.period,
-	// 				dto.startDay ? dto.startDay : new Date(),
-	// 			),
-	// 			currencyName: dto.currencyName,
-	// 			type: dto.type,
-	// 		});
-	// 	} else {
-	// 		newPayment = new this.paymentModel({
-	// 			email,
-	// 			title: dto.title,
-	// 			price: dto.price,
-	// 			currencyName: dto.currencyName,
-	// 			category: dto.category,
-	// 			type: dto.type,
-	// 		});
-	// 	}
-	//
-	// 	user.payments = [...user.payments, newPayment.id];
-	// 	await user.save();
-	// 	return newPayment.save();
-	// }
-	//
-	async checkAllPayments(): Promise<void> {
-		for await (const payment of this.paymentModel.find()) {
-			if (
-				payment.period &&
-				!payment.lastDate &&
-				payment.nextDate < new Date()
-			) {
-				//diff_balance 2 используется
-				// await this.balanceService.diffBalance2(payment.email, {
-				// 	diff: payment.type == 'income' ? payment.price : -payment.price,
-				// 	currencyName: payment.currencyName,
-				// });
-				payment.nextDate = await this.updateNextDate(
-					payment.period,
-					payment.nextDate,
-				);
-			}
+	async createPayment(email: string, dto: PaymentDto) {
+		this.balanceService.isCurrencyExist(dto.currencyName);
+		if (!dto.period)
+			await this.editBalanceByPayment(email, {type: dto.type, price: dto.price, currencyName: dto.currencyName});
+		const paymentData = {
+			email,
+			title: dto.title,
+			price: dto.price,
+			category: dto.category,
+			type: dto.type,
+			currencyName: dto.currencyName,
+		};
+		if (dto.period) {
+			Object.assign(paymentData,{
+				period: dto.period,
+				nextDate: await this.updateNextDate(
+					dto.period,
+					dto.startDay ? dto.startDay : new Date(),
+				),
+			});
 		}
+		const newPayment = new this.paymentModel(paymentData);
+		await this.userService.pushToNestedArray(email, newPayment._id, 'payments');
+		return newPayment.save();
 	}
-	// Использовалась старая версия diffBalance
-	// async checkAllPayments(): Promise<void> {
-	// 	for await (const income of this.paymentModel.find()) {
-	// 		if (income.period && income.nextDate < new Date()) {
-	// 			await this.balanceService.diffBalance(income.email, { diff: income.price });
-	// 			income.nextDate = await this.updateNextDate(income.period);
-	// 		}
-	// 	}
-	// }
+
+	async checkAllPayments(): Promise<void> {
+		for await (const payment of this.paymentModel.find())
+			if (payment.period && !payment.lastDate && payment.nextDate < new Date()) {
+				await this.editBalanceByPayment(payment.email, {type: payment.type, price: payment.price, currencyName: payment.currencyName});
+				payment.nextDate = await this.updateNextDate(payment.period, payment.nextDate,);
+			}
+	}
 
 	async updateNextDate(period: number, startDate: Date): Promise<Date> {
 		const currentDate: Date = startDate;
@@ -197,53 +144,24 @@ export class PaymentService {
 		return currentDate;
 	}
 
-	async stopPaymentSchedule(email: string, title: string): Promise<void> {
-		const payment = await this.paymentModel.findOne({ email, title });
-		if (payment.lastDate) {
-			return;
-		}
-		payment.lastDate = new Date();
-		payment.set('nextDate', undefined);
+
+	async stopPaymentScheduleById(id: Types.ObjectId): Promise<PaymentModel> {
+		const payment = await this.paymentModel.findOne({ _id: id});
+		if (!payment || !payment.nextDate) throw new ServiceException(paymentExceptions.WHAT_ERROR_IS_IT);
+		await this.checkAllPayments();
+		await payment.updateOne(
+			{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now() } },
+		);
+		return payment;
 	}
 
-	async stopPaymentScheduleById(
-		email: string,
-		id: ObjectId,
-	): Promise<PaymentModel | number> {
-		const payment = await this.getPaymentById(email, id);
-		if (!payment || payment.lastDate) return -1;
-		payment.lastDate = new Date();
-		payment.set('nextDate', undefined);
-		return payment.save();
-	}
-
-	// async stopPaymentSchedule(email: string, title: string): Promise<void> {
-	// 	const income = await this.paymentModel.findOne({
-	// 		email: email,
-	// 		title: title,
-	// 	});
-	// 	if (!income.nextDate) {
-	// 		return;
-	// 	}
-	// 	await this.checkAllPayments();
-	// 	await this.paymentModel.updateOne(
-	// 		{ email: email, title: title },
-	// 		{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now() } },
-	// 	);
-	// }
-
-	async deletePayment(
-		email: string,
-		title: string,
-	): Promise<PaymentModel | number> {
+	async deletePayment(email: string, title: string,): Promise<PaymentModel> {
 		const payment = await this.paymentModel.findOne({
 			email: email,
 			title: title,
 		});
-		if (!payment) return -1;
-		const user = await this.userService.findUser(email);
-		user.payments.splice(user.payments.indexOf(payment.id));
-		await user.save();
+		if (!payment) throw new ServiceException(paymentExceptions.CANT_DELETE_PAYMENT);
+		await this.userService.popFromNestedArray(email, payment._id, 'payments');
 		return payment.deleteOne();
 	}
 }

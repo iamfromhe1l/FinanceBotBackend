@@ -7,8 +7,8 @@ export enum paymentExceptions {
 
 	// TODO вынести в отдельную ошибку случай когда authEmail не совпадает с email в payment, debt и тд
 	EMAIL_AUTHORIZATION_ERROR = 'Email payment-а и AuthEmail не совпадают',
-
-
+	WHAT_ERROR_IS_IT = 'Посмотри пеже че тут должно быть',
+	CANT_DELETE_PAYMENT = 'Невозможно удалить payment, так как он не существует',
 	PAYMENT_NOT_EXIST = 'Payment-а с таким id не существует',
 }
 

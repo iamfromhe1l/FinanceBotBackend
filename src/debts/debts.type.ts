@@ -7,4 +7,4 @@ export type debtHolderType = 'me' | 'my';
 export type debtValue = {
     amount: number,
     currencyName: availableCurrency
-}
+};

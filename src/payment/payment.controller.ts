@@ -12,20 +12,20 @@ import { PaymentService } from './payment.service';
 import { PaymentDto } from './dto/payment.dto';
 import { GetCurrentUserEmail } from 'src/common/decorators/get-current-userEmail.decorator';
 import { PaymentModel } from './payment.model';
-import { ObjectId } from 'mongoose';
+import { Types } from 'mongoose';
 import { PaymentsListDto } from './dto/rangedPayments.dto';
 
 @Controller('payment')
 export class PaymentController {
 	constructor(private readonly paymentService: PaymentService) {}
 
-	// @Post('create')
-	// async createPayment(
-	// 	@GetCurrentUserEmail() email: string,
-	// 	@Body() dto: PaymentDto,
-	// ): Promise<PaymentModel> {
-	// 	return await this.paymentService.createPayment(email, dto);
-	// }
+	@Post('create')
+	async createPayment(
+		@GetCurrentUserEmail() email: string,
+		@Body() dto: PaymentDto,
+	): Promise<PaymentModel> {
+		return await this.paymentService.createPayment(email, dto);
+	}
 
 	@Get('list')
 	async getAllPaymentsList(
@@ -45,8 +45,8 @@ export class PaymentController {
 	@Get(':id')
 	async getPayment(
 		@GetCurrentUserEmail() email: string,
-		@Param('id') id: ObjectId,
-	): Promise<PaymentModel | null> {
+		@Param('id') id: Types.ObjectId,
+	): Promise<PaymentModel> {
 		return await this.paymentService.getPaymentById(email, id);
 	}
 
@@ -81,23 +81,16 @@ export class PaymentController {
 	@Put(':id')
 	async stopPaymentScheduleById(
 		@GetCurrentUserEmail() email: string,
-		@Param('id') id: ObjectId,
-	): Promise<PaymentModel | number> {
-		return await this.paymentService.stopPaymentScheduleById(email, id);
+		@Param('id') id: Types.ObjectId,
+	): Promise<PaymentModel> {
+		return await this.paymentService.stopPaymentScheduleById(id);
 	}
-	// @Put(':title')
-	// async stopPaymentSchedule(
-	// 	@GetCurrentUserEmail() email: string,
-	// 	@Param('title') title: string,
-	// ) {
-	// 	return this.incomeService.stopPaymentSchedule(email, title);
-	// }
 
 	@Delete(':title')
 	async deletePayment(
 		@GetCurrentUserEmail() email: string,
 		@Param('title') title: string,
-	): Promise<PaymentModel | number> {
+	): Promise<PaymentModel> {
 		return await this.paymentService.deletePayment(email, title);
 	}
 }

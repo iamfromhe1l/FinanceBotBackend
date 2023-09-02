@@ -28,6 +28,8 @@ export class DebtsService {
 		return this.debtsModel.findOne({ name, email, type: debtType, "value.currencyName": currency}).exec();
 	}
 
+
+	// TODO Посмотреть что будет если не существует долга
 	async getDebtById(id: Types.ObjectId) {
 		return this.debtsModel.findById(id).exec();
 	}
@@ -64,14 +66,14 @@ export class DebtsService {
 			debtDate: Date.now(),
 			fixedCurrencies
 		});
-		await this.userService.pushDebt(email,newDebt._id);
+		await this.userService.pushToNestedArray(email,newDebt._id,"debts");
 		return await newDebt.save();
 	}
 
 	async deleteDebt(email: string, id: Types.ObjectId,): Promise<DebtsModel> {
 		const debt = await this.getDebtById(id);
 		if (!debt || debt.email != email) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
-		await this.userService.popDebt(email,debt._id);
+		await this.userService.popFromNestedArray(email,debt._id,"debts");
 		return debt.deleteOne();
 	}
 

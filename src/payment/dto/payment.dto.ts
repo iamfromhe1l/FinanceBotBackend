@@ -9,6 +9,7 @@ import {
 	Min,
 } from 'class-validator';
 import { payment } from '../payment.type';
+import { availableCurrency } from "../../balance/balance.types";
 
 export class PaymentDto {
 	@MaxLength(20)
@@ -23,7 +24,7 @@ export class PaymentDto {
 
 	@MaxLength(3)
 	@IsString()
-	currencyName: string;
+	currencyName: availableCurrency;
 
 	@IsOptional()
 	@Max(365)

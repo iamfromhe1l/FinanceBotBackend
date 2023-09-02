@@ -16,17 +16,17 @@ export class UserService {
 		return await this.userModel.findOne({ email }).populate("listBalance").exec();
 	}
 
-	async pushDebt(email: string, id: Types.ObjectId): Promise<void>{
+	async pushToNestedArray(email: string, id: Types.ObjectId, name: string): Promise<void>{
 		this.userModel.updateOne(
 			{ email: email },
-			{ $push: { debts: id } }
+			{ $push: { [name]: id } }
 		);
 	}
 
-	async popDebt(email: string, id: Types.ObjectId): Promise<void>{
+	async popFromNestedArray(email: string, id: Types.ObjectId, name: string): Promise<void>{
 		this.userModel.updateOne(
 			{email: email },
-			{ $pull: { debts: { $in: id } } }
+			{ $pull: { [name]: { $in: id } } }
 		);
 	}
 
