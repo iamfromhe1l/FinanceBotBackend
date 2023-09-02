@@ -13,10 +13,11 @@ import { AddDebtsDto } from "./dto/add.debts.dto";
 import { DebtsModel } from "./debts.model";
 import { GetCurrentUserEmail } from "src/common/decorators/get-current-userEmail.decorator";
 import { CloseDebtsDto } from "./dto/close.debts.dto";
-import { debtType } from "./debts.type";
+import { debtHolderType } from "./debts.type";
 import { Types } from "mongoose";
 import { availableCurrency } from "../balance/balance.types";
 import { EditDebtsDto } from "./dto/edit.debts.dto";
+import { DiffDebtsDto } from "./dto/diff.debts.dto";
 
 @Controller("debts")
 export class DebtsController {
@@ -50,7 +51,7 @@ export class DebtsController {
     @Get("debtsList")
     async getDebtsList(
         @GetCurrentUserEmail() email: string,
-        @Query("debtType") debtType: debtType,
+        @Query("debtType") debtType: debtHolderType,
     ): Promise<DebtsModel[]> {
         return this.debtsService.getDebtsList(email, debtType);
     }
@@ -60,15 +61,31 @@ export class DebtsController {
         @GetCurrentUserEmail() email: string,
         @Query("step") step: number,
         @Query("current") current: number,
-        @Query("debtType") debtType: debtType,
+        @Query("debtType") debtType: debtHolderType,
     ): Promise<DebtsModel[]> {
         return this.debtsService.getRangedDebtsList(email, debtType, step, current);
+    }
+
+    @Put("edit")
+    async editDebt(
+        @GetCurrentUserEmail() email: string,
+        @Body() dto: EditDebtsDto,
+    ): Promise<DebtsModel> {
+        return this.debtsService.editDebt(email, dto);
+    }
+
+    @Put()
+    async diffDebt(
+        @GetCurrentUserEmail() email: string,
+        @Body() dto: DiffDebtsDto,
+    ): Promise<DebtsModel> {
+        return this.debtsService.diffDebt(email, dto);
     }
 
     @Get("reduced")
     async getReducedDebts(
         @GetCurrentUserEmail() email: string,
-        @Query("debtType") debtType: debtType,
+        @Query("debtType") debtType: debtHolderType,
     ): Promise<number> {
         return this.debtsService.getReducedDebts(email, debtType);
     }
@@ -76,16 +93,10 @@ export class DebtsController {
     @Get("reducedMap")
     async getReducedDebtsMap(
         @GetCurrentUserEmail() email: string,
-        @Query("debtType") debtType: debtType,
+        @Query("debtType") debtType: debtHolderType,
     ): Promise<Map<availableCurrency, number>> {
         return this.debtsService.getReducedDebtsMap(email, debtType);
     }
 
-    @Put()
-    async editDebt(
-        @GetCurrentUserEmail() email: string,
-        @Body() dto: EditDebtsDto,
-    ): Promise<DebtsModel> {
-        return this.debtsService.editDebt(email, dto);
-    }
+
 }

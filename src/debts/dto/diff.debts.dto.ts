@@ -1,9 +1,9 @@
 import {IsNumber} from 'class-validator';
 import { Types } from "mongoose";
 
-export class EditDebtsDto {
+export class DiffDebtsDto {
     @IsNumber()
-    editedAmount: number;
+    diff: number;
 
     id: Types.ObjectId;
 }

@@ -3,6 +3,7 @@ import { InjectModel } from 'nestjs-typegoose';
 import { UserModel } from './user.model';
 import { ReturnModelType } from '@typegoose/typegoose';
 import { CreateUserDto } from './dto/user.create.dto';
+import { Types } from "mongoose";
 
 @Injectable()
 export class UserService {
@@ -15,9 +16,29 @@ export class UserService {
 		return await this.userModel.findOne({ email }).populate("listBalance").exec();
 	}
 
+	async pushDebt(email: string, id: Types.ObjectId): Promise<void>{
+		this.userModel.updateOne(
+			{ email: email },
+			{ $push: { debts: id } }
+		);
+	}
+
+	async popDebt(email: string, id: Types.ObjectId): Promise<void>{
+		this.userModel.updateOne(
+			{email: email },
+			{ $pull: { debts: { $in: id } } }
+		);
+	}
+
 	async getUserWithPopulate(email: string) {
 		return (await this.userModel.findOne({ email })).populate([
 			{ path: 'payments' },
+			{ path: 'debts' },
+		]);
+	}
+
+	async getUserWithDebtsPopulate(email: string) {
+		return (await this.userModel.findOne({ email })).populate([
 			{ path: 'debts' },
 		]);
 	}

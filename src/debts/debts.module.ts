@@ -5,6 +5,7 @@ import { DebtsController } from './debts.controller';
 import { DebtsService } from './debts.service';
 import { DebtsModel } from './debts.model';
 import { ScheduleModule } from '@nestjs/schedule';
+import { BalanceModule } from "../balance/balance.module";
 
 @Module({
 	imports: [
@@ -17,6 +18,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 				},
 			},
 		]),
+		BalanceModule,
 		ScheduleModule.forRoot()
 	],
 	controllers: [DebtsController],

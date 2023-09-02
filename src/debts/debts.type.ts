@@ -1,6 +1,6 @@
 import { availableCurrency } from "../balance/balance.types";
 
-export type debtType = 'me' | 'my';
+export type debtHolderType = 'me' | 'my';
 // me  =  мне должны
 // my  =  я должен
 

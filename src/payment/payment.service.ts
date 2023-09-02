@@ -52,7 +52,7 @@ export class PaymentService {
 	}
 
 	async getPaymentsList(email: string): Promise<PaymentModel[]> {
-		return await this.paymentModel.find({ email });
+		return this.paymentModel.find({ email });
 	}
 
 	async getRangedPaymentsList(

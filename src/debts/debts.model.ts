@@ -1,6 +1,6 @@
 import { prop } from '@typegoose/typegoose';
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
-import { debtValue, debtType } from "./debts.type";
+import { debtValue, debtHolderType } from "./debts.type";
 
 export interface DebtsModel extends Base {}
 export class DebtsModel extends TimeStamps {
@@ -24,7 +24,7 @@ export class DebtsModel extends TimeStamps {
 	isClosed?: boolean;
 
 	@prop({ required: true })
-	type: debtType;
+	type: debtHolderType;
 
 	// isFixed==false => курс меняется, валюта зафиксирована. Например открыли долг на 100$,
 	// закрываем также на 100, но по новому курсу.
