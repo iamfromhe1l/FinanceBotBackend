@@ -1,8 +1,9 @@
-import { IsString } from 'class-validator';
+import { IsMongoId, IsNotEmpty } from "class-validator";
 import {Types} from 'mongoose';
 
 export class CloseDebtsDto {
-	@IsString()
+	@IsNotEmpty()
+	@IsMongoId()
 	id: Types.ObjectId;
 
 }

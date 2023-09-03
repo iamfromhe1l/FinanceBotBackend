@@ -1,18 +1,13 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {  Injectable } from '@nestjs/common';
 import { PaymentDto } from './dto/payment.dto';
 import { InjectModel } from 'nestjs-typegoose';
 import { PaymentModel } from './payment.model';
 import { ReturnModelType } from '@typegoose/typegoose';
 import { BalanceService } from 'src/balance/balance.service';
-// import { Cron, CronExpression } from '@nestjs/schedule';
 import { UserService } from 'src/user/user.service';
-import { ObjectId, Types } from "mongoose";
+import { Types } from "mongoose";
 import { PaymentsListDto } from './dto/rangedPayments.dto';
-// import { balanceTypes } from 'src/balance/balance.types';
-import {
-	balanceExceptions, debtsExceptions,
-	paymentExceptions,
-} from "src/common/exceptions/exception.constants";
+import { paymentExceptions, } from "src/common/exceptions/exception.constants";
 import { ServiceException } from "../common/exceptions/serviceException";
 import { editBalanceByPaymentType } from "./payment.type";
 import { Cron, CronExpression } from "@nestjs/schedule";

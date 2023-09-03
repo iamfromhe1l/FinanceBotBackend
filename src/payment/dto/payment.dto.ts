@@ -7,27 +7,29 @@ import {
 	Max,
 	MaxLength,
 	Min,
-} from 'class-validator';
+} from "class-validator";
 import { payment } from '../payment.type';
 import { availableCurrency } from "../../balance/balance.types";
 
 export class PaymentDto {
-	@MaxLength(20)
 	@IsNotEmpty()
+	@MaxLength(20)
 	@IsString()
 	title: string;
 
-	@Min(0)
+	@IsNotEmpty()
+	@Min(1)
 	@Max(1000000000)
 	@IsNumber()
 	price: number;
 
-	@MaxLength(3)
-	@IsString()
+	@IsNotEmpty()
+	// TODO Проверить что валюта существует c помощью валидатора
 	currencyName: availableCurrency;
 
 	@IsOptional()
 	@Max(365)
+	@Min(1)
 	@IsNumber()
 	period?: number;
 
@@ -35,10 +37,12 @@ export class PaymentDto {
 	@IsDateString()
 	startDay?: Date;
 
+	@IsNotEmpty()
 	@MaxLength(20)
 	@IsString()
 	category: string;
 
-	@IsString()
+	@IsNotEmpty()
+	// TODO Проверить что валюта существует c помощью валидатора
 	type: payment;
 }
