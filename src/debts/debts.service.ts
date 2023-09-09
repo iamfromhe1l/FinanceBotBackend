@@ -95,8 +95,7 @@ export class DebtsService {
 	}
 
 	async getDebtsList(email: string, debtType: debtHolderType): Promise<DebtsModel[]> {
-		const user = await this.userService.getUserWithDebtsPopulate(email);
-		return user.debts.filter((el) => el.type == debtType);
+		return this.debtsModel.find({ email, $eq :{type: debtType}});
 	}
 
 	async getRangedDebtsList(email: string, deptType: debtHolderType, step = 10, current = 0,): Promise<DebtsModel[]> {

@@ -1,5 +1,6 @@
-import { IsNotEmpty, IsNumber, IsString, Max, Min } from "class-validator";
-import { availableCurrency } from "../balance.types";
+import { IsIn, IsNotEmpty, IsNumber, IsString, Max, Min } from "class-validator";
+import { availableCurrency, availableCurrencysList } from "../balance.types";
+import { balanceExceptions } from "../../common/exceptions/exception.constants";
 
 export class DiffBalanceDto {
     @IsNotEmpty()
@@ -9,6 +10,6 @@ export class DiffBalanceDto {
     diff: number;
 
     @IsNotEmpty()
-    // TODO Проверить что валюта существует c помощью валидатора
+    @IsIn(availableCurrencysList, { message: balanceExceptions.CURRENCY_NOT_EXIST})
     currencyName: availableCurrency;
 }

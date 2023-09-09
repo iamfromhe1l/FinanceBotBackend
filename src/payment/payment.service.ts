@@ -43,8 +43,8 @@ export class PaymentService {
 		});
 	}
 
-	async getPaymentsList(email: string): Promise<PaymentModel[]> {
-		return this.paymentModel.find({ email });
+	async getPaymentsList(email: string, paymentType): Promise<PaymentModel[]> {
+		return this.paymentModel.find({ email, $eq :{type: paymentType}});
 	}
 
 	async getRangedPaymentsList(email: string, step = 10, current = 0,): Promise<PaymentModel[]> {

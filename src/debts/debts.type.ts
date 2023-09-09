@@ -8,3 +8,8 @@ export type debtValue = {
     amount: number,
     currencyName: availableCurrency
 };
+
+export enum DebtHolderEnum {
+    me = 'me',
+    my = 'my',
+}

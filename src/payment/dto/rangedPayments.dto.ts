@@ -1,9 +1,9 @@
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
-import { payment } from '../payment.type';
+import { IsBoolean, IsEnum, IsNotEmpty } from "class-validator";
+import { payment, paymentEnum } from "../payment.type";
 
 export class PaymentsListDto {
 	@IsNotEmpty()
-	// TODO Проверить что валюта существует c помощью валидатора
+	@IsEnum(paymentEnum)
 	type: payment;
 
 	@IsNotEmpty()

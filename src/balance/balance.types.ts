@@ -173,3 +173,5 @@ export const balanceTypes = {
   "ZMW": "Zambian Kwacha",
   "ZWL": "Zimbabwean Dollar"
 };
+
+export const availableCurrencysList = Object.keys(balanceTypes);

@@ -14,6 +14,7 @@ import { GetCurrentUserEmail } from 'src/common/decorators/get-current-userEmail
 import { PaymentModel } from './payment.model';
 import { Types } from 'mongoose';
 import { PaymentsListDto } from './dto/rangedPayments.dto';
+import { payment } from "./payment.type";
 
 @Controller('payment')
 export class PaymentController {
@@ -30,8 +31,9 @@ export class PaymentController {
 	@Get('list')
 	async getAllPaymentsList(
 		@GetCurrentUserEmail() email: string,
+		@Query("paymentType") paymentType: payment,
 	): Promise<PaymentModel[]> {
-		return await this.paymentService.getPaymentsList(email);
+		return await this.paymentService.getPaymentsList(email, paymentType);
 	}
 
 	@Get('listByDto')

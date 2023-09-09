@@ -1,5 +1,5 @@
 import {
-	IsDateString,
+	IsDateString, IsEnum, IsIn,
 	IsNotEmpty,
 	IsNumber,
 	IsOptional,
@@ -8,8 +8,9 @@ import {
 	MaxLength,
 	Min,
 } from "class-validator";
-import { payment } from '../payment.type';
-import { availableCurrency } from "../../balance/balance.types";
+import { payment, paymentEnum } from "../payment.type";
+import { availableCurrency, availableCurrencysList } from "../../balance/balance.types";
+import { balanceExceptions } from "../../common/exceptions/exception.constants";
 
 export class PaymentDto {
 	@IsNotEmpty()
@@ -24,7 +25,7 @@ export class PaymentDto {
 	price: number;
 
 	@IsNotEmpty()
-	// TODO Проверить что валюта существует c помощью валидатора
+	@IsIn(availableCurrencysList, { message: balanceExceptions.CURRENCY_NOT_EXIST})
 	currencyName: availableCurrency;
 
 	@IsOptional()
@@ -43,6 +44,6 @@ export class PaymentDto {
 	category: string;
 
 	@IsNotEmpty()
-	// TODO Проверить что валюта существует c помощью валидатора
+	@IsEnum(paymentEnum)
 	type: payment;
 }
