@@ -21,21 +21,23 @@ export class PublicService {
         const currencies = await this.balanceService.getCurrencies();
         // TODO мб как то иначе получать эти данные, чтобы не делать популейт всей коллекции
         const users = await this.userService.getUCollectionWithPopulate();
-        let totalBalance = 0, totalDebtsToMe = 0, totalMyDebts = 0;
+        const total = {balance:0,debtsToMe: 0, myDebts: 0,incomes:0, expenses:0};
         users.forEach(el => {
             el.listBalance.currencies.forEach((v, k) => {
-                totalBalance += v / currencies.get(k);
+                total.balance += v / currencies.get(k);
             });
             el.debts.forEach((v) => {
                 const value = v.value.amount / currencies.get(v.value.currencyName);
-                v.type == 'me' ? totalDebtsToMe += value : totalMyDebts += value;
+                v.type == 'me' ? total.debtsToMe += value : total.myDebts += value;
+            });
+            el.payments.forEach((v) => {
+                const value = v.price/currencies.get(v.currencyName);
+                v.type == 'income' ? total.incomes += value : total.expenses += value;
             });
         });
         await this.publicModel.updateOne({},{
             usersCount,
-            totalBalance,
-            totalDebtsToMe,
-            totalMyDebts,
+            ...total
         });
     }
 

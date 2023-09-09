@@ -7,6 +7,7 @@ import {TypegooseModule} from "nestjs-typegoose";
 import {UserModel} from "../user/user.model";
 import {PublicModel} from "./public.model";
 import { BalanceModule } from "../balance/balance.module";
+import { PaymentModule } from "../payment/payment.module";
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { BalanceModule } from "../balance/balance.module";
             },
         ]),
         BalanceModule,
+        PaymentModule,
         ScheduleModule.forRoot(),
     ],
     controllers: [PublicController],

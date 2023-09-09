@@ -15,8 +15,6 @@ import {ServiceException} from "../common/exceptions/serviceException";
 @Injectable()
 export class BalanceService {
     constructor(
-        @InjectModel(UserModel)
-        private readonly userModel: ReturnModelType<typeof UserModel>,
         @InjectModel(BalanceModel)
         private readonly balanceModel: ReturnModelType<typeof BalanceModel>,
         private readonly userService: UserService

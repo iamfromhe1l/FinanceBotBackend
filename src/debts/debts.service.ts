@@ -40,31 +40,33 @@ export class DebtsService {
 	Закрытие долга мне   balance +
 	Закрытие долга моего balance -
 	*/
-	async editBalanceByDebt(type:debtHolderType, opening:boolean, email: string, amount: number): Promise<void>{
+	async editBalanceByDebt(type:debtHolderType, opening:boolean, email: string, amount: number, currency: availableCurrency): Promise<void>{
 		const operation = type=="my" && opening || type=="me" && !opening;
 		const sign = operation ? 1 : -1;
+		const currencies = await this.balanceService.getCurrencies();
 		await this.balanceService.diffBalance(email,{
-			diff:amount*sign,
-			currencyName:"RUS"
+			diff:amount * sign * currencies.get(currency),
+			currencyName:"RUB"
 		});
 	}
 
 	async addDebt(email: string, dto: AddDebtsDto,): Promise<DebtsModel> {
 		const debt = await this.getDebt(email, dto.name, dto.debtType, dto.currency);
 		if (dto.editBalance)
-			await this.editBalanceByDebt(dto.debtType,true,email,dto.amount);
+			await this.editBalanceByDebt(dto.debtType,true,email,dto.amount,dto.currency);
 		if (debt)
 			return await this.diffDebt(email,{diff:dto.amount,id:debt._id});
-		const fixedCurrencies = new Map<availableCurrency,number>;
+		const oldValue = {};
 		if (dto.isFixed){
 			const actualCurrencies = await this.balanceService.getCurrencies();
-			fixedCurrencies.set(dto.currency,actualCurrencies.get(dto.currency));
+			oldValue["amount"] = dto.amount * actualCurrencies.get(dto.currency);
+			oldValue["currencyName"] = "RUB";
 		}
 		const newDebt = new this.debtsModel({
 			email,
 			...dto,
 			debtDate: Date.now(),
-			fixedCurrencies
+			oldValue
 		});
 		await this.userService.pushToNestedArray(email,newDebt._id,"debts");
 		return await newDebt.save();
@@ -107,8 +109,10 @@ export class DebtsService {
 	async closeDebt(email: string, dto: CloseDebtsDto): Promise<DebtsModel> {
 		const debt = await this.getDebtById(dto.id);
 		if (!debt || debt.email != email) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
+		// Если oldValue есть, то в editBalanceByDebt передаем новое значение, иначе из value
+		const value = debt.oldValue ? debt.oldValue : debt.value;
 		if (debt.editBalance)
-			await this.editBalanceByDebt(debt.type,false,email,debt.value.amount);
+			await this.editBalanceByDebt(debt.type,false,email,value.amount, value.currencyName);
 		debt.isClosed = true;
 		return debt.save();
 	}
