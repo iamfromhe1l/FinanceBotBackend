@@ -7,4 +7,4 @@ export enum paymentEnum {
     expense = 'expense',
 }
 
-export type editBalanceByPaymentType = { price: number; currencyName: availableCurrency; type: payment; }
+export type editBalanceByPaymentType = { amount: number; currency: availableCurrency; type: payment; };

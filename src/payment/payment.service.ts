@@ -9,7 +9,7 @@ import { Types } from "mongoose";
 import { PaymentsListDto } from './dto/rangedPayments.dto';
 import { paymentExceptions, } from "src/common/exceptions/exception.constants";
 import { ServiceException } from "../common/exceptions/serviceException";
-import { editBalanceByPaymentType } from "./payment.type";
+import { editBalanceByPaymentType, payment } from "./payment.type";
 import { Cron, CronExpression } from "@nestjs/schedule";
 
 @Injectable()
@@ -26,6 +26,7 @@ export class PaymentService {
 		await this.checkAllPayments();
 	}
 
+	// TODO отрефакторить
 	async getPaymentById(email: string, id: Types.ObjectId) {
 		try {
 			const payment = await this.paymentModel.findById(id);
@@ -38,13 +39,13 @@ export class PaymentService {
 
 	async editBalanceByPayment(email: string, obj: editBalanceByPaymentType) {
 		return this.balanceService.diffBalance(email, {
-			diff: obj.type == 'income' ? obj.price : -obj.price,
-			currencyName: obj.currencyName,
+			diff: obj.type == 'income' ? obj.amount : -obj.amount,
+			currency: obj.currency,
 		});
 	}
 
-	async getPaymentsList(email: string, paymentType): Promise<PaymentModel[]> {
-		return this.paymentModel.find({ email, $eq :{type: paymentType}});
+	async getPaymentsList(email: string, paymentType: payment): Promise<PaymentModel[]> {
+		return this.paymentModel.find({ email, type :{$eq: paymentType}});
 	}
 
 	async getRangedPaymentsList(email: string, step = 10, current = 0,): Promise<PaymentModel[]> {
@@ -100,16 +101,17 @@ export class PaymentService {
 	}
 
 	async createPayment(email: string, dto: PaymentDto) {
-		this.balanceService.isCurrencyExist(dto.currencyName);
 		if (!dto.period)
-			await this.editBalanceByPayment(email, {type: dto.type, price: dto.price, currencyName: dto.currencyName});
+			await this.editBalanceByPayment(email, {type: dto.type, amount: dto.value.amount, currency: dto.value.currency});
 		const paymentData = {
 			email,
 			title: dto.title,
-			price: dto.price,
+			value: {
+				amount: dto.value.amount,
+				currency: dto.value.currency,
+			},
 			category: dto.category,
 			type: dto.type,
-			currencyName: dto.currencyName,
 		};
 		if (dto.period) {
 			Object.assign(paymentData,{
@@ -128,7 +130,7 @@ export class PaymentService {
 	async checkAllPayments(): Promise<void> {
 		for await (const payment of this.paymentModel.find())
 			if (payment.period && !payment.lastDate && payment.nextDate < new Date()) {
-				await this.editBalanceByPayment(payment.email, {type: payment.type, price: payment.price, currencyName: payment.currencyName});
+				await this.editBalanceByPayment(payment.email, {type: payment.type, amount: payment.value.amount, currency: payment.value.currency});
 				payment.nextDate = await this.updateNextDate(payment.period, payment.nextDate,);
 			}
 	}

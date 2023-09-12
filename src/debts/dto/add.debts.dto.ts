@@ -1,18 +1,15 @@
 import {
 	IsBoolean,
 	IsEnum,
-	IsIn,
 	IsNotEmpty,
-	IsNumber,
 	IsString,
-	Max,
 	MaxLength,
-	Min,
-	MinLength,
+	MinLength, ValidateNested,
 } from "class-validator";
 import { DebtHolderEnum, debtHolderType } from "../debts.type";
-import { availableCurrency, availableCurrencysList } from "../../balance/balance.types";
-import { balanceExceptions } from "../../common/exceptions/exception.constants";
+import { Type } from "class-transformer";
+import { ValueDto } from "../../balance/dto/currency.balance.dto";
+
 
 export class AddDebtsDto {
 	@IsNotEmpty()
@@ -21,19 +18,13 @@ export class AddDebtsDto {
 	@IsString()
 	name: string;
 
-	@IsNotEmpty()
-	@Min(1)
-	@Max(1000000)
-	@IsNumber()
-	amount: number;
-
-	@IsNotEmpty()
-	@IsIn(availableCurrencysList, { message: balanceExceptions.CURRENCY_NOT_EXIST})
-	currency: availableCurrency;
+	@ValidateNested()
+	@Type(() => ValueDto)
+	value: ValueDto;
 
 	@IsNotEmpty()
 	@IsEnum(DebtHolderEnum)
-	debtType: debtHolderType;
+	type: debtHolderType;
 
 	@IsNotEmpty()
 	@IsBoolean()

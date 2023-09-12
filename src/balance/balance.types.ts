@@ -1,6 +1,11 @@
 export type availableCurrency = keyof typeof balanceTypes;
 export type namesType = typeof balanceTypes;
 
+export type value = {
+  amount: number,
+  currency: availableCurrency
+};
+
 export const balanceTypes = {
   "AED": "United Arab Emirates Dirham",
   "AFN": "Afghan Afghani",

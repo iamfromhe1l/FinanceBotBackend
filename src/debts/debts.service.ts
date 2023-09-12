@@ -23,9 +23,9 @@ export class DebtsService {
 		private readonly balanceService: BalanceService,
 	) {}
 
-
+	// TODO проверить работает ли метод
 	async getDebt(email: string, name: string, debtType: debtHolderType, currency: availableCurrency){
-		return this.debtsModel.findOne({ name, email, type: debtType, "value.currencyName": currency}).exec();
+		return this.debtsModel.findOne({ name, email, type: debtType, "value.currency": currency}).exec();
 	}
 
 
@@ -46,26 +46,25 @@ export class DebtsService {
 		const currencies = await this.balanceService.getCurrencies();
 		await this.balanceService.diffBalance(email,{
 			diff:amount * sign * currencies.get(currency),
-			currencyName:"RUB"
+			currency:"RUB"
 		});
 	}
 
 	async addDebt(email: string, dto: AddDebtsDto,): Promise<DebtsModel> {
-		const debt = await this.getDebt(email, dto.name, dto.debtType, dto.currency);
+		const debt = await this.getDebt(email, dto.name, dto.type, dto.value.currency);
 		if (dto.editBalance)
-			await this.editBalanceByDebt(dto.debtType,true,email,dto.amount,dto.currency);
+			await this.editBalanceByDebt(dto.type,true,email,dto.value.amount,dto.value.currency);
 		if (debt)
-			return await this.diffDebt(email,{diff:dto.amount,id:debt._id});
+			return await this.diffDebt(email,{diff:dto.value.amount,id:debt._id});
 		const oldValue = {};
 		if (dto.isFixed){
 			const actualCurrencies = await this.balanceService.getCurrencies();
-			oldValue["amount"] = dto.amount * actualCurrencies.get(dto.currency);
-			oldValue["currencyName"] = "RUB";
+			oldValue["amount"] = dto.value.amount * actualCurrencies.get(dto.value.currency);
+			oldValue["currency"] = "RUB";
 		}
 		const newDebt = new this.debtsModel({
 			email,
 			...dto,
-			debtDate: Date.now(),
 			oldValue
 		});
 		await this.userService.pushToNestedArray(email,newDebt._id,"debts");
@@ -111,7 +110,7 @@ export class DebtsService {
 		// Если oldValue есть, то в editBalanceByDebt передаем новое значение, иначе из value
 		const value = debt.oldValue ? debt.oldValue : debt.value;
 		if (debt.editBalance)
-			await this.editBalanceByDebt(debt.type,false,email,value.amount, value.currencyName);
+			await this.editBalanceByDebt(debt.type,false,email,value.amount, value.currency);
 		debt.isClosed = true;
 		return debt.save();
 	}
@@ -120,7 +119,7 @@ export class DebtsService {
 		const debtsList = await this.getDebtsList(email, debtType);
 		const TotalDebtsMap = new Map<availableCurrency,number>;
 		debtsList.map(el => {
-			TotalDebtsMap.set(el.value.currencyName,el.value.amount + TotalDebtsMap.get(el.value.currencyName));
+			TotalDebtsMap.set(el.value.currency,el.value.amount + TotalDebtsMap.get(el.value.currency));
 		});
 		return TotalDebtsMap;
 	}

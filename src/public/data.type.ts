@@ -4,6 +4,8 @@ type publicData = {
     totalBalance:number,
     totalDebtsToMe:number,
     totalMyDebts:number,
+    totalIncomes:number,
+    totalExpenses:number,
 };
 
 

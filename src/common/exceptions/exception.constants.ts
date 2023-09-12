@@ -1,5 +1,6 @@
 export enum balanceExceptions {
 	CURRENCY_NOT_EXIST = 'Валюта с таким названием не существует',
+	TEST = 'Тестовая ошибка',
 	BALANCE_DONT_HAS_CURRENCY = 'В балансе нет такой валюты',
 	LESS_THAN_ZERO = 'Баланс изменяемой валюты меньше нуля',
 }

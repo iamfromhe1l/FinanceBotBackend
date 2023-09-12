@@ -44,13 +44,7 @@ export class PaymentController {
 		return await this.paymentService.getPaymentsListByDto(email, dto);
 	}
 
-	@Get(':id')
-	async getPayment(
-		@GetCurrentUserEmail() email: string,
-		@Param('id') id: Types.ObjectId,
-	): Promise<PaymentModel> {
-		return await this.paymentService.getPaymentById(email, id);
-	}
+
 
 	@Get('ranged')
 	async getRangedPaymentsList(
@@ -58,6 +52,7 @@ export class PaymentController {
 		@Query('step') step: number,
 		@Query('current') current: number,
 	): Promise<PaymentModel[]> {
+		console.log(email, step, current);
 		return await this.paymentService.getRangedPaymentsList(
 			email,
 			step,
@@ -78,6 +73,14 @@ export class PaymentController {
 			step,
 			current,
 		);
+	}
+
+	@Get(':id')
+	async getPayment(
+		@GetCurrentUserEmail() email: string,
+		@Param('id') id: Types.ObjectId,
+	): Promise<PaymentModel> {
+		return await this.paymentService.getPaymentById(email, id);
 	}
 
 	@Put(':id')

@@ -5,7 +5,7 @@ import {ConfigModule} from "@nestjs/config";
 import {TypegooseModule} from "nestjs-typegoose";
 import {UserModel} from "../user/user.model";
 import {ScheduleModule} from "@nestjs/schedule";
-import {BalanceModel} from "./balance.model";
+import { BalanceModel } from "./balance.model";
 
 @Module({
 	imports: [

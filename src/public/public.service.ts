@@ -27,11 +27,11 @@ export class PublicService {
                 total.balance += v / currencies.get(k);
             });
             el.debts.forEach((v) => {
-                const value = v.value.amount / currencies.get(v.value.currencyName);
+                const value = v.value.amount / currencies.get(v.value.currency);
                 v.type == 'me' ? total.debtsToMe += value : total.myDebts += value;
             });
             el.payments.forEach((v) => {
-                const value = v.price/currencies.get(v.currencyName);
+                const value = v.value.amount/currencies.get(v.value.currency);
                 v.type == 'income' ? total.incomes += value : total.expenses += value;
             });
         });
@@ -42,12 +42,15 @@ export class PublicService {
     }
 
     async getPublicData() {
-        const doc: PublicModel = await this.publicModel.findOne({});
-        return {
-            usersCount: doc.usersCount,
-            totalBalance: doc.totalBalance,
-            totalDebtsToMe: doc.totalDebtsToMe,
-            totalMyDebts: doc.totalMyDebts,
-        };
+        // const doc: PublicModel = await this.publicModel.findOne({});
+        // return {
+        //     usersCount: doc.usersCount,
+        //     totalBalance: doc.totalBalance,
+        //     totalDebtsToMe: doc.totalDebtsToMe,
+        //     totalMyDebts: doc.totalMyDebts,
+        //     totalIncomes: doc.totalIncomes,
+        //     totalExpenses: doc.totalExpenses,
+        // };
+        return this.publicModel.findOne({});
     }
 }

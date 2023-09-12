@@ -1,16 +1,16 @@
 import {
-	IsDateString, IsEnum, IsIn,
+	IsDateString, IsEnum,
 	IsNotEmpty,
 	IsNumber,
 	IsOptional,
 	IsString,
 	Max,
 	MaxLength,
-	Min,
+	Min, ValidateNested,
 } from "class-validator";
 import { payment, paymentEnum } from "../payment.type";
-import { availableCurrency, availableCurrencysList } from "../../balance/balance.types";
-import { balanceExceptions } from "../../common/exceptions/exception.constants";
+import { Type } from "class-transformer";
+import { ValueDto } from "../../balance/dto/currency.balance.dto";
 
 export class PaymentDto {
 	@IsNotEmpty()
@@ -18,15 +18,9 @@ export class PaymentDto {
 	@IsString()
 	title: string;
 
-	@IsNotEmpty()
-	@Min(1)
-	@Max(1000000000)
-	@IsNumber()
-	price: number;
-
-	@IsNotEmpty()
-	@IsIn(availableCurrencysList, { message: balanceExceptions.CURRENCY_NOT_EXIST})
-	currencyName: availableCurrency;
+	@ValidateNested()
+	@Type(() => ValueDto)
+	value: ValueDto;
 
 	@IsOptional()
 	@Max(365)

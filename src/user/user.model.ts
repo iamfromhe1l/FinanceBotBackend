@@ -3,7 +3,6 @@ import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 import { Types } from 'mongoose';
 import { PaymentModel } from 'src/payment/payment.model';
 import { DebtsModel } from '../debts/debts.model';
-import {BalanceModel} from "../balance/balance.model";
 
 export interface UserModel extends Base {}
 export class UserModel extends TimeStamps {
@@ -13,7 +12,6 @@ export class UserModel extends TimeStamps {
 	@prop({ type: () => String, required: true })
 	passwordHash: string;
 
-	// Refresh jwt token
 	@prop({ type: () => String })
 	hashRt: string;
 

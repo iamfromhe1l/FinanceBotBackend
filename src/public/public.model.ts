@@ -16,4 +16,10 @@ export class PublicModel extends TimeStamps {
     @prop({ type: () => Number, required: true })
     totalBalance: number;
 
+    @prop({ type: () => Number, required: true })
+    totalIncomes: number;
+
+    @prop({ type: () => Number, required: true })
+    totalExpenses: number;
+
 }

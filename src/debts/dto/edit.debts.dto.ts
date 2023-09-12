@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 
 export class EditDebtsDto {
     @IsNotEmpty()
-    @Min(1)
+    @Min(0.01)
     @Max(100000000)
     @IsNumber()
     editedAmount: number;
