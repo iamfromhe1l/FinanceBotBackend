@@ -22,7 +22,7 @@ export class BalanceService {
     }
 
     // TODO Вместо проверки в функциях, проверять условие в интерсепторе для всех запросов где используются разные валюты
-    isCurrencyExist(newBase:string): void{
+    isCurrencyExist(newBase : string): void{
         const flag =  Object.keys(balanceTypes).includes(newBase);
         if (!flag) throw new ServiceException(balanceExceptions.CURRENCY_NOT_EXIST);
     }
@@ -44,14 +44,16 @@ export class BalanceService {
     async addCurrency(email: string,newBase: string): Promise<boolean>{
         this.isCurrencyExist(newBase);
         const user = await this.userService.findUser(email);
-        if (!user.listBalance.currencies.has(newBase)){
-            user.listBalance.currencies.set(newBase,0);
+        if (!user.listBalance.has(newBase)){
+            user.listBalance.set(newBase,0);
             await user.save();
             return true;
         }
         return false;
     }
 
+
+    // TODO переписать через update
     @Cron(CronExpression.EVERY_3_HOURS)
     async updateCurrenciesData(): Promise<void> {
         const currencies = await fetch('https://openexchangerates.org/api/latest.json?app_id=f31efe911527419f9c314d915e958c0c',
@@ -75,17 +77,18 @@ export class BalanceService {
         return balanceTypes;
     }
 
-    async getCurrencies(newBase?:string): Promise<Map<string,number>>{
-        this.isCurrencyExist(newBase);
+    async getCurrencies(newBase?: string): Promise<Map<string,number>>{
         const curr = await this.balanceModel.findOne({});
-        if (newBase)
-            return this.changeBaseCurrency(curr.currencies,newBase);
+        if (newBase) {
+            const a = this.changeBaseCurrency(curr.currencies, newBase);
+            return a;
+        }
         return curr.currencies;
     }
 
     async getBalance(email: string): Promise<Map<string,number>>{
         const user = await this.userService.findUser(email);
-        return user.listBalance.currencies;
+        return user.listBalance;
     }
 
     async editBalance(
@@ -94,22 +97,26 @@ export class BalanceService {
     ): Promise<Map<string,number>> {
         this.isCurrencyExist(dto.currencyName);
         const user = await this.userService.findUser(email);
-        user.listBalance.currencies.set(dto.currencyName,dto.editedBalance);
+        if (!user.listBalance.has(dto.currencyName)) throw new ServiceException(balanceExceptions.BALANCE_DONT_HAS_CURRENCY);
+        user.listBalance.set(dto.currencyName,dto.editedBalance);
         await user.save();
-        return user.listBalance.currencies;
+        return user.listBalance;
     }
-
 
     async diffBalance(
         email: string,
         dto: DiffBalanceDto,
     ): Promise<Map<string,number>> {
         this.isCurrencyExist(dto.currencyName);
+        console.log(email)
         const user = await this.userService.findUser(email);
-        const newValue = user.listBalance.currencies.get(dto.currencyName) + dto.diff;
+        console.log(user)
+        if (!user.listBalance.has(dto.currencyName)) throw new ServiceException(balanceExceptions.BALANCE_DONT_HAS_CURRENCY);
+
+        const newValue = user.listBalance.get(dto.currencyName) + dto.diff;
         if (newValue < 0) throw new ServiceException(balanceExceptions.LESS_THAN_ZERO);
-        user.listBalance.currencies.set(dto.currencyName,newValue);
+        user.listBalance.set(dto.currencyName,newValue);
         await user.save();
-        return user.listBalance.currencies;
+        return user.listBalance;
     }
 }

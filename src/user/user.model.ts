@@ -20,13 +20,8 @@ export class UserModel extends TimeStamps {
 	@prop({ type: () => String })
 	name: string;
 
-	// Проверить как выглядит при популейте
-	@prop({ type: () => Types.ObjectId, ref: () => BalanceModel  })
-	listBalance: BalanceModel;
-
-	// поч 2 баланса
-	@prop({ default: 0 })
-	balance: number;
+	@prop({ required: true})
+	listBalance: Map<string, number>;
 
 	@prop({ type: () => Types.ObjectId, ref: () => PaymentModel })
 	payments: PaymentModel[];

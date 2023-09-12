@@ -23,7 +23,7 @@ export class PublicService {
         const users = await this.userService.getUCollectionWithPopulate();
         const total = {balance:0,debtsToMe: 0, myDebts: 0,incomes:0, expenses:0};
         users.forEach(el => {
-            el.listBalance.currencies.forEach((v, k) => {
+            el.listBalance.forEach((v, k) => {
                 total.balance += v / currencies.get(k);
             });
             el.debts.forEach((v) => {

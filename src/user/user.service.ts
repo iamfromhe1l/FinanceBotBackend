@@ -13,7 +13,7 @@ export class UserService {
 	) {}
 
 	async findUser(email: string) {
-		return await this.userModel.findOne({ email }).populate("listBalance").exec();
+		return await this.userModel.findOne({ email }).exec();
 	}
 
 	async pushToNestedArray(email: string, id: Types.ObjectId, name: string): Promise<void>{
@@ -61,6 +61,7 @@ export class UserService {
 			email,
 			name: dto.name || 'User',
 			passwordHash: dto.passwordHash,
+			listBalance: {"RUB" : 0}
 		});
 		return await newUser.save();
 	}
