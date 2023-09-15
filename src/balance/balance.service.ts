@@ -70,12 +70,10 @@ export class BalanceService {
 
     }
 
-    // TODO Добавить русские названия валют
     getNames(): namesType{
         return balanceTypes;
     }
 
-    // TODO Хранить в документе базовую валюту
     async getCurrencies(newBase?: string): Promise<Map<string,number>>{
         const currencies = await this.balanceModel.findOne({});
         if (newBase)

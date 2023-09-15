@@ -7,7 +7,7 @@ import { UserService } from '../user/user.service';
 import { CloseDebtsDto } from './dto/close.debts.dto';
 import {Types} from 'mongoose';
 import { debtHolderType } from "./debts.type";
-import {debtsExceptions} from "../common/exceptions/exception.constants";
+import { commonExceptions, debtsExceptions } from "../common/exceptions/exception.constants";
 import {ServiceException} from "../common/exceptions/serviceException";
 import {availableCurrency} from "../balance/balance.types";
 import {BalanceService} from "../balance/balance.service";
@@ -28,10 +28,11 @@ export class DebtsService {
 		return this.debtsModel.findOne({ name, email, type: debtType, "value.currency": currency}).exec();
 	}
 
-
-	// TODO Посмотреть что будет если не существует долга
-	async getDebtById(id: Types.ObjectId) {
-		return this.debtsModel.findById(id).exec();
+	async getDebtById(id: Types.ObjectId, email: string){
+		const debt = await this.debtsModel.findById(id).exec()
+		if (!debt) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
+		if (debt.email != email) throw new ServiceException(commonExceptions.AUTHORIZATION_ERROR);
+		return debt
 	}
 
 	/*
@@ -72,23 +73,19 @@ export class DebtsService {
 	}
 
 	async deleteDebt(email: string, id: Types.ObjectId,): Promise<DebtsModel> {
-		const debt = await this.getDebtById(id);
-		if (!debt || debt.email != email) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
+		const debt = await this.getDebtById(id, email);
 		await this.userService.popFromNestedArray(email,debt._id,"debts");
 		return debt.deleteOne();
 	}
 
 	async editDebt(email: string, dto: EditDebtsDto): Promise<DebtsModel> {
-		const debt = await this.getDebtById(dto.id);
-		//TODO вынести проверку email в каждом запросе в интерсептор
-		if (!debt || debt.email != email) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
+		const debt = await this.getDebtById(dto.id, email);
 		debt.value.amount = dto.editedAmount;
 		return await debt.save();
 	}
 
 	async diffDebt(email: string, dto: DiffDebtsDto): Promise<DebtsModel> {
-		const debt = await this.getDebtById(dto.id);
-		if (!debt || debt.email != email) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
+		const debt = await this.getDebtById(dto.id, email);
 		debt.value.amount += dto.diff;
 		return await debt.save();
 	}
@@ -105,9 +102,8 @@ export class DebtsService {
 	}
 
 	async closeDebt(email: string, dto: CloseDebtsDto): Promise<DebtsModel> {
-		const debt = await this.getDebtById(dto.id);
-		if (!debt || debt.email != email) throw new ServiceException(debtsExceptions.DEBT_NOT_EXIST);
-		// Если oldValue есть, то в editBalanceByDebt передаем новое значение, иначе из value
+		const debt = await this.getDebtById(dto.id, email);
+		// TODO Если oldValue есть, то в editBalanceByDebt передаем новое значение, иначе из value
 		const value = debt.oldValue ? debt.oldValue : debt.value;
 		if (debt.editBalance)
 			await this.editBalanceByDebt(debt.type,false,email,value.amount, value.currency);

@@ -10,6 +10,6 @@ export class ValueDto {
     amount: number;
 
     @IsNotEmpty()
-    @IsIn(availableCurrencysList, { message: balanceExceptions.TEST})
+    @IsIn(availableCurrencysList, { message: balanceExceptions.CURRENCY_NOT_EXIST})
     currency: availableCurrency;
 }

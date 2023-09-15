@@ -7,7 +7,7 @@ import { BalanceService } from 'src/balance/balance.service';
 import { UserService } from 'src/user/user.service';
 import { Types } from "mongoose";
 import { PaymentsListDto } from './dto/rangedPayments.dto';
-import { paymentExceptions, } from "src/common/exceptions/exception.constants";
+import { commonExceptions, paymentExceptions } from "src/common/exceptions/exception.constants";
 import { ServiceException } from "../common/exceptions/serviceException";
 import { editBalanceByPaymentType, payment } from "./payment.type";
 import { Cron, CronExpression } from "@nestjs/schedule";
@@ -26,15 +26,11 @@ export class PaymentService {
 		await this.checkAllPayments();
 	}
 
-	// TODO отрефакторить
 	async getPaymentById(email: string, id: Types.ObjectId) {
-		try {
-			const payment = await this.paymentModel.findById(id);
-			if (payment.email == email) return payment;
-			throw new ServiceException(paymentExceptions.EMAIL_AUTHORIZATION_ERROR);
-		} catch {
-			throw new ServiceException(paymentExceptions.PAYMENT_NOT_EXIST);
-		}
+		const payment = await this.paymentModel.findById(id).exec();
+		if (!payment) throw new ServiceException(paymentExceptions.PAYMENT_NOT_EXIST);
+		if (payment.email != email) throw new ServiceException(commonExceptions.AUTHORIZATION_ERROR);
+		return payment;
 	}
 
 	async editBalanceByPayment(email: string, obj: editBalanceByPaymentType) {
@@ -144,7 +140,7 @@ export class PaymentService {
 
 	async stopPaymentScheduleById(id: Types.ObjectId): Promise<PaymentModel> {
 		const payment = await this.paymentModel.findOne({ _id: id});
-		if (!payment || !payment.nextDate) throw new ServiceException(paymentExceptions.WHAT_ERROR_IS_IT);
+		if (!payment || !payment.nextDate) throw new ServiceException(paymentExceptions.PAYMENT_SCHEDULE_STOPPED);
 		await this.checkAllPayments();
 		await payment.updateOne(
 			{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now() } },
