@@ -53,11 +53,7 @@ export class PaymentController {
 		@Query('current') current: number,
 	): Promise<PaymentModel[]> {
 		console.log(email, step, current);
-		return await this.paymentService.getRangedPaymentsList(
-			email,
-			step,
-			current,
-		);
+		return await this.paymentService.getRangedPaymentsList(email, step, current);
 	}
 
 	@Get('rangedByDto')
@@ -88,14 +84,14 @@ export class PaymentController {
 		@GetCurrentUserEmail() email: string,
 		@Param('id') id: Types.ObjectId,
 	): Promise<PaymentModel> {
-		return await this.paymentService.stopPaymentScheduleById(id);
+		return await this.paymentService.stopPaymentScheduleById(email, id);
 	}
 
-	@Delete(':title')
+	@Delete(':id')
 	async deletePayment(
 		@GetCurrentUserEmail() email: string,
-		@Param('title') title: string,
-	): Promise<PaymentModel> {
-		return await this.paymentService.deletePayment(email, title);
+		@Param('id') id: Types.ObjectId,
+	): Promise<void> {
+		return await this.paymentService.deletePayment(email, id);
 	}
 }

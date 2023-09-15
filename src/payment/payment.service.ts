@@ -125,10 +125,14 @@ export class PaymentService {
 
 	async checkAllPayments(): Promise<void> {
 		for await (const payment of this.paymentModel.find())
-			if (payment.period && !payment.lastDate && payment.nextDate < new Date()) {
-				await this.editBalanceByPayment(payment.email, {type: payment.type, amount: payment.value.amount, currency: payment.value.currency});
-				payment.nextDate = await this.updateNextDate(payment.period, payment.nextDate,);
-			}
+			await this.checkPayment(payment);
+	}
+
+	async checkPayment(payment: PaymentModel): Promise<void> {
+		if (payment.period && !payment.lastDate && payment.nextDate < new Date()) {
+			await this.editBalanceByPayment(payment.email, {type: payment.type, amount: payment.value.amount, currency: payment.value.currency});
+			payment.nextDate = await this.updateNextDate(payment.period, payment.nextDate,);
+		}
 	}
 
 	async updateNextDate(period: number, startDate: Date): Promise<Date> {
@@ -137,24 +141,18 @@ export class PaymentService {
 		return currentDate;
 	}
 
-
-	async stopPaymentScheduleById(id: Types.ObjectId): Promise<PaymentModel> {
-		const payment = await this.paymentModel.findOne({ _id: id});
-		if (!payment || !payment.nextDate) throw new ServiceException(paymentExceptions.PAYMENT_SCHEDULE_STOPPED);
-		await this.checkAllPayments();
-		await payment.updateOne(
-			{ $unset: { nextDate: 1 }, $set: { lastDate: Date.now() } },
-		);
+	async stopPaymentScheduleById(email: string, id: Types.ObjectId): Promise<PaymentModel> {
+		const payment = await this.getPaymentById(email, id)
+		if (!payment.nextDate) throw new ServiceException(paymentExceptions.PAYMENT_SCHEDULE_STOPPED);
+		await this.checkPayment(payment);
+		await payment.updateOne({ $unset: { nextDate: 1 }, $set: { lastDate: Date.now() } });
 		return payment;
 	}
 
-	async deletePayment(email: string, title: string,): Promise<PaymentModel> {
-		const payment = await this.paymentModel.findOne({
-			email: email,
-			title: title,
-		});
-		if (!payment) throw new ServiceException(paymentExceptions.CANT_DELETE_PAYMENT);
-		await this.userService.popFromNestedArray(email, payment._id, 'payments');
-		return payment.deleteOne();
+	async deletePayment(email: string, id: Types.ObjectId): Promise<void> {
+		const payment = await this.getPaymentById(email, id);
+		await this.userService.popFromNestedArray(payment.email, payment._id, 'payments');
+		await payment.deleteOne();
 	}
+
 }
