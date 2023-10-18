@@ -23,7 +23,7 @@ export class DebtsService {
 		private readonly balanceService: BalanceService,
 	) {}
 
-	// TODO проверить работает ли метод
+	// TODO проверить работает ли метод и вообще нужен ли он
 	async getDebt(email: string, name: string, debtType: debtHolderType, currency: availableCurrency){
 		return this.debtsModel.findOne({ name, email, type: debtType, "value.currency": currency}).exec();
 	}
@@ -35,12 +35,6 @@ export class DebtsService {
 		return debt
 	}
 
-	/*
-	Открытие долга мне   balance -
-	Открытие долга моего balance +
-	Закрытие долга мне   balance +
-	Закрытие долга моего balance -
-	*/
 	async editBalanceByDebt(type:debtHolderType, opening:boolean, email: string, amount: number, currency: availableCurrency): Promise<void>{
 		const operation = type=="my" && opening || type=="me" && !opening;
 		const sign = operation ? 1 : -1;
@@ -103,8 +97,7 @@ export class DebtsService {
 
 	async closeDebt(email: string, dto: CloseDebtsDto): Promise<DebtsModel> {
 		const debt = await this.getDebtById(dto.id, email);
-		// TODO Если oldValue есть, то в editBalanceByDebt передаем новое значение, иначе из value
-		const value = debt.oldValue ? debt.oldValue : debt.value;
+		const value = debt.isFixed ? debt.oldValue : debt.value;
 		if (debt.editBalance)
 			await this.editBalanceByDebt(debt.type,false,email,value.amount, value.currency);
 		debt.isClosed = true;

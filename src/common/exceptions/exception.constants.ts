@@ -11,8 +11,6 @@ export enum balanceExceptions {
 
 export enum paymentExceptions {
 	PAYMENT_SCHEDULE_STOPPED = 'Повторение платежа уже остановлено',
-	// TODO врядли нужно
-	CANT_DELETE_PAYMENT = 'Невозможно удалить payment, так как он не существует',
 	PAYMENT_NOT_EXIST = 'Payment с таким id не существует',
 }
 

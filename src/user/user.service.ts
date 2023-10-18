@@ -17,20 +17,21 @@ export class UserService {
 	}
 
 	async pushToNestedArray(email: string, id: Types.ObjectId, name: string): Promise<void>{
-		this.userModel.updateOne(
+		console.log("pushToNestedArray",email, id, name);
+		await this.userModel.updateOne(
 			{ email: email },
 			{ $push: { [name]: id } }
 		);
 	}
 
 	async popFromNestedArray(email: string, id: Types.ObjectId, name: string): Promise<void>{
-		this.userModel.updateOne(
+		await this.userModel.updateOne(
 			{email: email },
 			{ $pull: { [name]: { $in: id } } }
 		);
 	}
 
-	async getUCollectionWithPopulate() {
+	async getUsersCollectionWithPopulate() {
 		return this.userModel.find().populate([
 			{ path: 'payments' },
 			{ path: 'debts' },

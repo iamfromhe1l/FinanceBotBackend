@@ -50,4 +50,9 @@ export class BalanceController {
     	return await this.balanceService.diffBalance(email, dto);
     }
 
+    @Get('_update')
+    async updateCurrenciesData(): Promise<void> {
+    	await this.balanceService.updateCurrenciesData();
+    }
+
 }

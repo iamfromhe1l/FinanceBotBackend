@@ -12,4 +12,10 @@ export class PublicController {
     async getDebtsList(): Promise<publicData> {
         return this.publicService.getPublicData();
     }
+
+    @Public()
+    @Get("_update")
+    async updatePublicData() {
+        return this.publicService.updatePublicData();
+    }
 }

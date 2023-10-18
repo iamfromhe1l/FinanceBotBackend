@@ -5,6 +5,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PublicModel } from './public.model';
 import { UserService } from "../user/user.service";
 import { BalanceService } from "../balance/balance.service";
+import publicData from "./data.type";
+
 
 @Injectable()
 export class PublicService {
@@ -15,12 +17,12 @@ export class PublicService {
         private readonly balanceService: BalanceService,
     ) {}
 
+    // TODO округлять данные
     @Cron(CronExpression.EVERY_DAY_AT_11PM)
     async updatePublicData() {
         const usersCount = await this.userService.getUsersCount();
         const currencies = await this.balanceService.getCurrencies();
-        // TODO мб как то иначе получать эти данные, чтобы не делать популейт всей коллекции
-        const users = await this.userService.getUCollectionWithPopulate();
+        const users = await this.userService.getUsersCollectionWithPopulate();
         const total = {balance:0,debtsToMe: 0, myDebts: 0,incomes:0, expenses:0};
         users.forEach(el => {
             el.listBalance.forEach((v, k) => {
@@ -35,22 +37,18 @@ export class PublicService {
                 v.type == 'income' ? total.incomes += value : total.expenses += value;
             });
         });
-        await this.publicModel.updateOne({},{
-            usersCount,
-            ...total
+        await this.publicModel.updateOne({}, {
+            $set: { "usersCount": usersCount,
+                "totalBalance": total.balance,
+                "totalDebtsToMe": total.debtsToMe,
+                "totalMyDebts": total.myDebts,
+                "totalIncomes": total.incomes,
+                "totalExpenses": total.expenses,
+            },
         });
     }
 
-    async getPublicData() {
-        // const doc: PublicModel = await this.publicModel.findOne({});
-        // return {
-        //     usersCount: doc.usersCount,
-        //     totalBalance: doc.totalBalance,
-        //     totalDebtsToMe: doc.totalDebtsToMe,
-        //     totalMyDebts: doc.totalMyDebts,
-        //     totalIncomes: doc.totalIncomes,
-        //     totalExpenses: doc.totalExpenses,
-        // };
-        return this.publicModel.findOne({});
+    async getPublicData(): Promise<publicData> {
+        return this.publicModel.findOne({}).select('-_id -updatedAt');
     }
 }

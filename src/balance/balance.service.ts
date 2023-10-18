@@ -45,8 +45,7 @@ export class BalanceService {
         return true;
     }
 
-    // TODO не работает
-    @Cron(CronExpression.EVERY_10_SECONDS)
+    @Cron(CronExpression.EVERY_DAY_AT_11PM)
     async updateCurrenciesData(): Promise<void> {
         const apiResponse = await fetch('https://openexchangerates.org/api/latest.json?app_id=f31efe911527419f9c314d915e958c0c',
             {method: 'GET', headers: {accept: 'application/json'}})
@@ -59,11 +58,7 @@ export class BalanceService {
             rates.set(key, apiResponse.rates[key]);
         });
         const newRates = this.changeBaseCurrency(rates,'RUB');
-        // this.balanceModel.findOneAndUpdate({},{
-        //     $set: { "rates": newRates}
-        // });
-        // TODO  нужно обновить единственный документ в коллекции balanceModel и заменить rates на переменную newRates
-        this.balanceModel.updateOne({},{
+        await this.balanceModel.updateOne({},{
             $set: { "rates": newRates}
         });
 
